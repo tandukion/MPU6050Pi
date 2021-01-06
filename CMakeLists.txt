@@ -23,14 +23,14 @@ target_link_libraries(
 )
 
 # Create executable and its libraries
-# add_executable(
-#     test_dualmotor 
-#     test/test_dualmotor.cpp
-# )
-# target_link_libraries(
-#     test_dualmotor 
-#     motorPi
-# )
+add_executable(
+    read_MPU6050Pi 
+    example/read_MPU6050Pi.cpp
+)
+target_link_libraries(
+    read_MPU6050Pi 
+    MPU6050Pi
+)
 
 #############
 ## Install ##

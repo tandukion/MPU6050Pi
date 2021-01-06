@@ -3,8 +3,7 @@
 
 #include <cstdint>
 
-#include <wiringPi.h>
-#include <wiringPiI2C.h>
+#include "I2CPi.h"
 
 #define G_FORCE 9.80665
 
@@ -149,11 +148,11 @@
  */ 
 class MPU6050Pi {
     private:
-        uint8_t I2C_ADDRESS;
-        int fd;
+        uint8_t I2C_address_;
+        int fd_;
 
-        float gyro_sensitivity;
-        float accel_sensitivity;
+        float gyro_sensitivity_;
+        float accel_sensitivity_;
 
     public:
         /**
@@ -172,6 +171,18 @@ class MPU6050Pi {
 
         void SetFullScaleGyroRange(uint8_t range=FS_SEL_250);
         void SetFullScaleAccelRange(uint8_t range=AFS_SEL_2);
+        void SetXAccelOffset(int16_t offset);
+        void SetYAccelOffset(int16_t offset);
+        void SetZAccelOffset(int16_t offset);
+
+        void GetAccelRaw(float* ax, float* ay, float* az);
+        void GetAccel(float* ax, float* ay, float* az);
+        void GetAccelX(float* ax);
+        void GetAccelY(float* ay);
+        void GetAccelZ(float* az);
+
+        void GetGyroRaw(float* gx, float* gy, float* gz);
+        void GetGyro(float* gx, float* gy, float* gz);
 };
 
 #endif
