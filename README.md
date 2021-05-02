@@ -23,9 +23,15 @@ make
 sudo make install
 ```
 
+### Calibration
+Run the following command to run the auto calibration under `build` directory created on build.
+```
+./auto_calibration
+```
+
 ## Run test program
 ### Test
 Run the following command under `build` directory created on build.
 ```
-
+./read_MPU6050Pi
 ```

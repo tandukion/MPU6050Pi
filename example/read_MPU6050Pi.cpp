@@ -8,11 +8,10 @@ int main(int argc, char **argv) {
     // Connect to device.
     MPU6050Pi mpu;
 
-    // Start ROS node stuff
+    int16_t ax, ay, az, gx, gy, gz;
+
     // Publish in loop.
-    float ax, ay, az, gx, gy, gz;
-    while(1) {
-        
+    while(1) {    
         // Get gyroscope data.
         // The result is already scaled by the sensitivity.
         mpu.GetGyro(&gx, &gy, &gz);

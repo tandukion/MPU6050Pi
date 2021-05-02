@@ -23,14 +23,11 @@ target_link_libraries(
 )
 
 # Create executable and its libraries
-add_executable(
-    read_MPU6050Pi 
-    example/read_MPU6050Pi.cpp
-)
-target_link_libraries(
-    read_MPU6050Pi 
-    MPU6050Pi
-)
+add_executable(read_MPU6050Pi example/read_MPU6050Pi.cpp)
+target_link_libraries(read_MPU6050Pi MPU6050Pi)
+
+add_executable(auto_calibration src/auto_calibration.cpp)
+target_link_libraries(auto_calibration MPU6050Pi)
 
 #############
 ## Install ##
