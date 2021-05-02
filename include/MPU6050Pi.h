@@ -171,18 +171,28 @@ class MPU6050Pi {
 
         void SetFullScaleGyroRange(uint8_t range=FS_SEL_250);
         void SetFullScaleAccelRange(uint8_t range=AFS_SEL_2);
+
         void SetXAccelOffset(int16_t offset);
         void SetYAccelOffset(int16_t offset);
         void SetZAccelOffset(int16_t offset);
 
-        void GetAccelRaw(float* ax, float* ay, float* az);
-        void GetAccel(float* ax, float* ay, float* az);
-        void GetAccelX(float* ax);
-        void GetAccelY(float* ay);
-        void GetAccelZ(float* az);
+        void SetXGyroOffset(int16_t offset);
+        void SetYGyroOffset(int16_t offset);
+        void SetZGyroOffset(int16_t offset);
 
-        void GetGyroRaw(float* gx, float* gy, float* gz);
-        void GetGyro(float* gx, float* gy, float* gz);
+        void GetMotion6(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz);
+
+        void GetAccel(int16_t* ax, int16_t* ay, int16_t* az);
+        void GetAccelX(int16_t* ax);
+        void GetAccelY(int16_t* ay);
+        void GetAccelZ(int16_t* az);
+        void GetAccelFloat(float* ax, float* ay, float* az);
+
+        void GetGyro(int16_t* gx, int16_t* gy, int16_t* gz);
+        void GetGyroFloat(float* gx, float* gy, float* gz);
+
+        float GetAccelSensitivity();
+        float GetGyroSensitivity();
 };
 
 #endif
