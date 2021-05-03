@@ -144,7 +144,7 @@
 #define DLPF_BW_5               0x06
 
 /**
- * Class for 1 channel of L298 Motor Driver control using Raspberry Pi GPIO.
+ * Class for MPU6050 sensor reading using Raspberry Pi GPIO.
  */ 
 class MPU6050Pi {
     private:
@@ -160,7 +160,8 @@ class MPU6050Pi {
          * 
          * @param address   {int}   I2C address of the device. By default is 0x68.
          */
-        MPU6050Pi(uint8_t address=0x68, uint8_t gyro_range=0, uint8_t accel_range=0);
+        MPU6050Pi();
+        MPU6050Pi(int16_t *offsets);
 
         /**
          * Initialize the MPU6050 device.
@@ -172,10 +173,13 @@ class MPU6050Pi {
         void SetFullScaleGyroRange(uint8_t range=FS_SEL_250);
         void SetFullScaleAccelRange(uint8_t range=AFS_SEL_2);
 
+        void SetOffset(int16_t *offset);
+        void SetAccelOffset(int16_t *offset);
         void SetXAccelOffset(int16_t offset);
         void SetYAccelOffset(int16_t offset);
         void SetZAccelOffset(int16_t offset);
 
+        void SetGyroOffset(int16_t *offset);
         void SetXGyroOffset(int16_t offset);
         void SetYGyroOffset(int16_t offset);
         void SetZGyroOffset(int16_t offset);
