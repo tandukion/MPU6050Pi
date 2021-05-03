@@ -1,9 +1,10 @@
 #include <iostream>
-#include <iomanip>
+#include <fstream>
 #include <thread>
 #include <chrono>
 #include <algorithm>
 #include <vector>
+#include <sys/stat.h>
 
 #include <MPU6050Pi.h>
 
@@ -84,6 +85,7 @@ void Calibrate(int* ax_mean, int* ay_mean, int* az_mean, int* gx_mean, int* gy_m
 
         GetAverage(&(*ax_mean), &(*ay_mean), &(*az_mean), &(*gx_mean), &(*gy_mean), &(*gz_mean));
 
+        std::cout << "Mean: ";
         std::cout << *ax_mean << " " << *ay_mean << " " << *az_mean << " " << *gx_mean << " " << *gy_mean << " " << *gz_mean << std::endl;
 
         // Correcting accelerometer offset
@@ -117,24 +119,54 @@ void Calibrate(int* ax_mean, int* ay_mean, int* az_mean, int* gx_mean, int* gy_m
 }
 
 int main(int argc, char **argv) {
+    // Check whether previously created calibration file exists
+    std::string file_name = "calibration_file.csv";
+    struct stat buf;
+    if (stat(file_name.c_str(), &buf) == 0) {
+        char u_input;
+        int MAX_RETRY = 5;
+        int try_count = 0;
+        do {
+            std::cout << "There is previously created calibration file. Replace with new calibration (y/n)? ";
+            std::cin >> u_input;
+            try_count++;
+        }
+        while(!std::cin.fail() && try_count < MAX_RETRY && u_input!='y' && u_input!='Y' && u_input!='n' && u_input!='N');
+
+        if (try_count >= MAX_RETRY)
+            return 0;
+
+        if ((u_input == 'n') || (u_input == 'N'))
+            return 0;
+    }
+    else {
+        std::cout << "No existing calibration file. Creating a new one." << std::endl;
+    }
+
     // Get the average from sensor reading
-    std::cout << "Get the average from sensors" << std::endl;
+    std::cout << "\nGet the average from sensors" << std::endl;
     GetAverage(&ax_mean, &ay_mean, &az_mean, &gx_mean, &gy_mean, &gz_mean);
 
-    std::cout << "Mean" << std::endl;
+    std::cout << "Mean: ";
     std::cout << ax_mean << " " << ay_mean << " " << az_mean << " " << gx_mean << " " << gy_mean << " " << gz_mean << std::endl;
 
     std::this_thread::sleep_for (std::chrono::seconds(1));
 
     // Calibration
-    std::cout << "Calculating offset" << std::endl;
+    std::cout << "\nCalculating offset" << std::endl;
     Calibrate(&ax_mean, &ay_mean, &az_mean, &gx_mean, &gy_mean, &gz_mean);
 
-    std::cout << "Finished" << std::endl;
-    std::cout << "Mean" << std::endl;
-    std::cout << ax_mean << " " << ay_mean << " " << az_mean << " " << gx_mean << " " << gy_mean << " " << gz_mean << std::endl;
-    std::cout << "Offset" << std::endl;
+    std::cout << "\nCalibration finished" << std::endl;
+    std::cout << "Offset:" << std::endl;
     std::cout << ax_offset << " " << ay_offset << " " << az_offset << " " << gx_offset << " " << gy_offset << " " << gz_offset << std::endl;
+
+    // Saving to external file
+    std::ofstream ofile;
+    ofile.open(file_name);
+    ofile << "XAccelOffset" << "," << "YAccelOffset" << "," << "ZAccelOffset" << ",";
+    ofile << "XGyroOffset" << "," << "YGyroOffset" << "," << "ZGyroOffset" << std::endl;
+    ofile << ax_offset << "," << ay_offset << "," << az_offset << "," << gx_offset << "," << gy_offset << "," << gz_offset << std::endl;
+    ofile.close();
 
     return 0;
 }
