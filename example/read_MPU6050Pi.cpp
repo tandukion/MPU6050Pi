@@ -64,8 +64,12 @@ int main(int argc, char **argv) {
         int16_t *offsets;
 
         offsets = GetCalibrationData(argv[1]);
-        if (!offsets) return 0;
-        mpu.SetOffset(offsets);
+        if (offsets){
+            mpu.SetOffset(offsets);
+        }
+        else {
+            std::cout << "Proceed with default offsets" << std::endl;
+        }
     }
 
     int16_t ax, ay, az, gx, gy, gz;
