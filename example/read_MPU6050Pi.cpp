@@ -73,29 +73,65 @@ int main(int argc, char **argv) {
     }
 
     int16_t ax, ay, az, gx, gy, gz;
+    float accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z;
 
-    // ====== Raw Sensor Data ======
-    std::cout << "Raw Sensor Data\n";
-    std::cout << std::fixed << std::setprecision(6) << std::setfill(' ');
-    std::cout << std::setw(9) << 'X' << std::setw(9) << 'Y' << std::setw(9) << 'Z';
-    std::cout << std::setw(9) << 'X' << std::setw(9) << 'Y' << std::setw(9) << 'Z';
-    std::cout << std::endl;
+    std::cout << "----------------------------" << std::endl;
+    std::cout << "1. Raw Sensor Data (int)" << std::endl;
+    std::cout << "2. Float Sensor Data" << std::endl;
+    std::cout << "3. Orientation (Complementary filter)" << std::endl;
+    std::cout << "----------------------------" << std::endl;
+    std::cout << "Choose mode to choose: ";
+    
+    int mode;
+    std::cin >> mode;
 
-    // Publish in loop.
-    while(1) {
-        // Choose between two methods here:
-        // 1. Get from one single function for both accelerometer and gyroscope
-        mpu.GetMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+    switch(mode){
+        case 1:
+            // ====== Raw Sensor Data ======
+            std::cout << "Raw Sensor Data\n";
+            std::cout << std::fixed << std::setprecision(6) << std::setfill(' ');
+            std::cout << std::setw(9) << 'X' << std::setw(9) << 'Y' << std::setw(9) << 'Z';
+            std::cout << std::setw(9) << 'X' << std::setw(9) << 'Y' << std::setw(9) << 'Z';
+            std::cout << std::endl;
 
-        // 2. Get separated gyroscope and accelerometer
-        // Get gyroscope data.
-        // mpu.GetGyro(&gx, &gy, &gz);
-        // Get accelerometer values.
-        // mpu.GetAccel(&ax, &ay, &az);
+            // Publish in loop.
+            while(1) {
+                // Choose between two methods here:
+                // 1. Get from one single function for both accelerometer and gyroscope
+                mpu.GetMotion6(&ax, &ay, &az, &gx, &gy, &gz);
 
-        std::cout << std::setw(9) << ax << std::setw(9) << ay << std::setw(9) << az;
-        std::cout << std::setw(9) << gx << std::setw(9) << gy << std::setw(9) << gz;
-        std::cout << "\r";
+                // 2. Get separated gyroscope and accelerometer
+                // Get gyroscope data.
+                // mpu.GetGyro(&gx, &gy, &gz);
+                // Get accelerometer values.
+                // mpu.GetAccel(&ax, &ay, &az);
+
+                std::cout << std::setw(9) << ax << std::setw(9) << ay << std::setw(9) << az;
+                std::cout << std::setw(9) << gx << std::setw(9) << gy << std::setw(9) << gz;
+                std::cout << "\r";
+            }
+            break;
+        case 2:
+            // ====== Float Sensor Data ======
+            std::cout << "Float Sensor Data\n";
+            std::cout << std::fixed << std::setprecision(6) << std::setfill(' ');
+            std::cout << std::setw(10) << "X(g)" << std::setw(10) << "Y(g)" << std::setw(10) << "Z(g)";
+            std::cout << std::setw(10) << "X(deg/s)" << std::setw(10) << "Y(deg/s)" << std::setw(10) << "Z(deg/s)";
+            std::cout << std::endl;
+
+            // Publish in loop.
+            while(1) {
+                // Get gyroscope data.
+                mpu.GetGyroFloat(&gyro_x, &gyro_y, &gyro_z);
+                // Get accelerometer values.
+                mpu.GetAccelFloat(&accel_x, &accel_y, &accel_z);
+
+                std::cout << std::setw(10) << accel_x << std::setw(10) << accel_y << std::setw(10) << accel_z;
+                std::cout << std::setw(10) << gyro_x << std::setw(10) << gyro_y << std::setw(10) << gyro_z;
+                std::cout << "\r";
+            }
+            break;
+
     }
     return 0;
 }
