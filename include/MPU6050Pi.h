@@ -155,48 +155,195 @@ class MPU6050Pi {
         float accel_sensitivity_;
 
     public:
+        /** ============================================================
+         *      CONSTRUCTOR
+         *  ============================================================
+         */
+        /**
+         * Constructor of the class using all default settings
+         */
+        MPU6050Pi();
         /**
          * Constructor of the class
          * 
-         * @param address   {int}   I2C address of the device. By default is 0x68.
+         * @param offsets {int16_t*} Array of offsets: {AccelX, AccelY, AccelZ, GyroX, GyroY, GyroZ}
          */
-        MPU6050Pi();
         MPU6050Pi(int16_t *offsets);
 
+        /** ============================================================
+         *      CONFIGURATION
+         *  ============================================================
+         */
         /**
-         * Initialize the MPU6050 device.
+         * Set Sample Rate Divider (SMPLRT_DIV) for Gyroscope Output Rate.
+         * 
+         * @param rate {uint8_t} Sample rate divider 
          */
         void SetRate(uint8_t rate);
 
+        /**
+         * Set Digital Low Pass Filter (DLPF) mode. See register map datasheet for DLPF_CFG.
+         * 
+         * @param mode {uint8_t} Value for DLPF_CFG
+         */
         void SetDLPFMode(uint8_t mode);
 
+        /**
+         * Set Gyroscope FullScale Range
+         *  FS_SEL  | Full Scale Range  |   LSB Sensitivity
+         *      0           250 deg/s           131 LSB/deg/s
+         *      1           500 deg/s          65.5 LSB/deg/s
+         *      2          1000 deg/s          32.8 LSB/deg/s
+         *      3          2000 deg/s          16.4 LSB/deg/s
+         * 
+         * @param range {uint8_t} Value for FS_SEL. Default to 0.
+         */
         void SetFullScaleGyroRange(uint8_t range=FS_SEL_250);
+        /**
+         * Return current gyroscope sensitivity per Least Significant Bit (LSB)
+         */
+        float GetGyroSensitivity();
+
+        /**
+         * Set Accelerometer FullScale Range
+         *  AFS_SEL  | Full Scale Range |   LSB Sensitivity
+         *      0           2 g              16384 LSB/g
+         *      1           4 g               8192 LSB/g
+         *      2           8 g               4096 LSB/g
+         *      3          16 g               2048 LSB/g
+         * 
+         * @param range {uint8_t} Value for AFS_SEL. Default to 0.
+         */
         void SetFullScaleAccelRange(uint8_t range=AFS_SEL_2);
+        /**
+         * Return current accerelerometer sensitivity per Least Significant Bit (LSB)
+         */
+        float GetAccelSensitivity();
 
+        /**
+         * Set all offsets for accelerometer and gyroscope
+         * 
+         * @param offset {int16_t*} Array of offsets: {AccelX, AccelY, AccelZ, GyroX, GyroY, GyroZ}
+         */
         void SetOffset(int16_t *offset);
+        /**
+         * Set all offsets for accelerometer
+         * 
+         * @param offset {int16_t*} Array of offsets: {AccelX, AccelY, AccelZ}
+         */
         void SetAccelOffset(int16_t *offset);
-        void SetXAccelOffset(int16_t offset);
-        void SetYAccelOffset(int16_t offset);
-        void SetZAccelOffset(int16_t offset);
+        /**
+         * Set X-axis offsets of accelerometer
+         * 
+         * @param offset {int16_t} offset
+         */
+        void SetAccelXOffset(int16_t offset);
+        /**
+         * Set Y-axis offsets of accelerometer
+         * 
+         * @param offset {int16_t} offset
+         */
+        void SetAccelYOffset(int16_t offset);
+        /**
+         * Set Z-axis offsets of accelerometer
+         * 
+         * @param offset {int16_t} offset
+         */
+        void SetAccelZOffset(int16_t offset);
 
+        /**
+         * Set all offsets for gyroscope
+         * 
+         * @param offset {int16_t*} Array of offsets: {GyroX, GyroY, GyroZ}
+         */
         void SetGyroOffset(int16_t *offset);
-        void SetXGyroOffset(int16_t offset);
-        void SetYGyroOffset(int16_t offset);
-        void SetZGyroOffset(int16_t offset);
+        /**
+         * Set X-axis offsets of gyroscope
+         * 
+         * @param offset {int16_t} offset
+         */
+        void SetGyroXOffset(int16_t offset);
+        /**
+         * Set Y-axis offsets of gyroscope
+         * 
+         * @param offset {int16_t} offset
+         */
+        void SetGyroYOffset(int16_t offset);
+        /**
+         * Set Z-axis offsets of gyroscope
+         * 
+         * @param offset {int16_t} offset
+         */
+        void SetGyroZOffset(int16_t offset);
 
+        /** ============================================================
+         *      DATA
+         *  ============================================================
+         */
+        /**
+         * Return 16bit signed raw sensor data for accelerometer and gyroscope
+         * 
+         * @param ax {int16_t} accelerometer X-axis
+         * @param ay {int16_t} accelerometer Y-axis
+         * @param az {int16_t} accelerometer Z-axis
+         * @param gx {int16_t} gyroscope X-axis
+         * @param gy {int16_t} gyroscope Y-axis
+         * @param gz {int16_t} gyroscope Z-axis
+         */
         void GetMotion6(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz);
 
+        /**
+         * Return 16bit signed raw sensor data for accelerometer
+         * 
+         * @param ax {int16_t} accelerometer X-axis
+         * @param ay {int16_t} accelerometer Y-axis
+         * @param az {int16_t} accelerometer Z-axis
+         */
         void GetAccel(int16_t* ax, int16_t* ay, int16_t* az);
+        /**
+         * Return 16bit signed raw sensor data for accelerometer X-axis
+         * 
+         * @param ax {int16_t} data
+         */
         void GetAccelX(int16_t* ax);
+        /**
+         * Return 16bit signed raw sensor data for accelerometer Y-axis
+         * 
+         * @param ay {int16_t} data
+         */
         void GetAccelY(int16_t* ay);
+        /**
+         * Return 16bit signed raw sensor data for accelerometer Z-axis
+         * 
+         * @param az {int16_t} data
+         */
         void GetAccelZ(int16_t* az);
+        /**
+         * Return float-converted sensor data for accelerometer in g (gravity)
+         * 
+         * @param ax {float} accelerometer X-axis
+         * @param ay {float} accelerometer Y-axis
+         * @param az {float} accelerometer Z-axis
+         */
         void GetAccelFloat(float* ax, float* ay, float* az);
 
+        /**
+         * Return 16bit signed raw sensor data for gyroscope
+         * 
+         * @param gx {int16_t} gyroscope X-axis
+         * @param gy {int16_t} gyroscope Y-axis
+         * @param gz {int16_t} gyroscope Z-axis
+         */
         void GetGyro(int16_t* gx, int16_t* gy, int16_t* gz);
+        /**
+         * Return float-converted sensor data for gyroscope in deg/s
+         * 
+         * @param gx {float} gyroscope X-axis
+         * @param gy {float} gyroscope Y-axis
+         * @param gz {float} gyroscope Z-axis
+         */
         void GetGyroFloat(float* gx, float* gy, float* gz);
 
-        float GetAccelSensitivity();
-        float GetGyroSensitivity();
 };
 
 #endif

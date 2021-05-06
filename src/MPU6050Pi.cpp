@@ -1,5 +1,9 @@
 #include "MPU6050Pi.h"
 
+/** ============================================================
+ *      CONSTRUCTOR
+ *  ============================================================
+ */
 MPU6050Pi::MPU6050Pi() {
     // Set default the I2C address of the device
     I2C_address_ = 0x68;
@@ -23,12 +27,12 @@ MPU6050Pi::MPU6050Pi() {
     MPU6050Pi::SetFullScaleAccelRange(0);
 
     // Set offsets with default zeros
-    MPU6050Pi::SetXAccelOffset(0x0000);
-    MPU6050Pi::SetYAccelOffset(0x0000);
-    MPU6050Pi::SetZAccelOffset(0x0000);
-    MPU6050Pi::SetXGyroOffset(0x0000);
-    MPU6050Pi::SetYGyroOffset(0x0000);
-    MPU6050Pi::SetZGyroOffset(0x0000);
+    MPU6050Pi::SetAccelXOffset(0x0000);
+    MPU6050Pi::SetAccelYOffset(0x0000);
+    MPU6050Pi::SetAccelZOffset(0x0000);
+    MPU6050Pi::SetGyroXOffset(0x0000);
+    MPU6050Pi::SetGyroYOffset(0x0000);
+    MPU6050Pi::SetGyroZOffset(0x0000);
 }
 
 MPU6050Pi::MPU6050Pi(int16_t *offsets) {
@@ -54,14 +58,18 @@ MPU6050Pi::MPU6050Pi(int16_t *offsets) {
     MPU6050Pi::SetFullScaleAccelRange(0);
 
     // Set offsets
-    MPU6050Pi::SetXAccelOffset(offsets[0]);
-    MPU6050Pi::SetYAccelOffset(offsets[1]);
-    MPU6050Pi::SetZAccelOffset(offsets[2]);
-    MPU6050Pi::SetXGyroOffset(offsets[4]);
-    MPU6050Pi::SetYGyroOffset(offsets[5]);
-    MPU6050Pi::SetZGyroOffset(offsets[6]);
+    MPU6050Pi::SetAccelXOffset(offsets[0]);
+    MPU6050Pi::SetAccelYOffset(offsets[1]);
+    MPU6050Pi::SetAccelZOffset(offsets[2]);
+    MPU6050Pi::SetGyroXOffset(offsets[4]);
+    MPU6050Pi::SetGyroYOffset(offsets[5]);
+    MPU6050Pi::SetGyroZOffset(offsets[6]);
 }
 
+/** ============================================================
+ *      CONFIGURATION
+ *  ============================================================
+ */
 void MPU6050Pi::SetRate(uint8_t rate) {
     I2CPi::WriteByte(fd_, SMPLRT_DIV, rate);
 }
@@ -93,6 +101,10 @@ void MPU6050Pi::SetFullScaleGyroRange(uint8_t range) {
     I2CPi::WriteByte(fd_, GYRO_CONFIG, gyro_config_val);
 }
 
+float MPU6050Pi::GetAccelSensitivity() {
+    return accel_sensitivity_;
+}
+
 void MPU6050Pi::SetFullScaleAccelRange(uint8_t range) {
     uint8_t accel_config_val;
     switch (range) {
@@ -116,6 +128,10 @@ void MPU6050Pi::SetFullScaleAccelRange(uint8_t range) {
     I2CPi::WriteByte(fd_, ACCEL_CONFIG, accel_config_val);
 }
 
+float MPU6050Pi::GetGyroSensitivity() {
+    return gyro_sensitivity_;
+}
+
 void MPU6050Pi::SetOffset(int16_t *offset){
     I2CPi::WriteWord(fd_, XA_OFFS_H, offset[0]);
     I2CPi::WriteWord(fd_, YA_OFFS_H, offset[1]);
@@ -129,16 +145,13 @@ void MPU6050Pi::SetAccelOffset(int16_t *offset){
     I2CPi::WriteWord(fd_, YA_OFFS_H, offset[1]);
     I2CPi::WriteWord(fd_, ZA_OFFS_H, offset[2]);
 }
-
-void MPU6050Pi::SetXAccelOffset(int16_t offset) {
+void MPU6050Pi::SetAccelXOffset(int16_t offset) {
     I2CPi::WriteWord(fd_, XA_OFFS_H, offset);
 }
-
-void MPU6050Pi::SetYAccelOffset(int16_t offset) {
+void MPU6050Pi::SetAccelYOffset(int16_t offset) {
     I2CPi::WriteWord(fd_, YA_OFFS_H, offset);
 }
-
-void MPU6050Pi::SetZAccelOffset(int16_t offset) {
+void MPU6050Pi::SetAccelZOffset(int16_t offset) {
     I2CPi::WriteWord(fd_, ZA_OFFS_H, offset);
 }
 
@@ -147,18 +160,20 @@ void MPU6050Pi::SetGyroOffset(int16_t *offset){
     I2CPi::WriteWord(fd_, YG_OFFSET_H, offset[1]);
     I2CPi::WriteWord(fd_, ZG_OFFSET_H, offset[2]);
 }
-void MPU6050Pi::SetXGyroOffset(int16_t offset){
+void MPU6050Pi::SetGyroXOffset(int16_t offset){
     I2CPi::WriteWord(fd_, XG_OFFSET_H, offset);
 }
-
-void MPU6050Pi::SetYGyroOffset(int16_t offset) {
+void MPU6050Pi::SetGyroYOffset(int16_t offset) {
     I2CPi::WriteWord(fd_, YG_OFFSET_H, offset);
 }
-
-void MPU6050Pi::SetZGyroOffset(int16_t offset) {
+void MPU6050Pi::SetGyroZOffset(int16_t offset) {
     I2CPi::WriteWord(fd_, ZG_OFFSET_H, offset);
 }
 
+/** ============================================================
+ *      DATA
+ *  ============================================================
+ */
 void MPU6050Pi::GetMotion6(int16_t* ax, int16_t* ay, int16_t* az,
                            int16_t* gx, int16_t* gy, int16_t* gz) {
     *ax = I2CPi::ReadWord(fd_, ACCEL_XOUT_H);
@@ -199,12 +214,4 @@ void MPU6050Pi::GetGyroFloat(float* gx, float* gy, float* gz) {
     *gx = (float) x / gyro_sensitivity_;
     *gy = (float) y / gyro_sensitivity_;
     *gz = (float) z / gyro_sensitivity_;
-}
-
-
-float MPU6050Pi::GetAccelSensitivity() {
-    return accel_sensitivity_;
-}
-float MPU6050Pi::GetGyroSensitivity() {
-    return gyro_sensitivity_;
 }

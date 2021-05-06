@@ -75,13 +75,13 @@ void Calibrate(int* ax_mean, int* ay_mean, int* az_mean, int* gx_mean, int* gy_m
     while (error>0) {
         error = 0;
 
-        mpu.SetXAccelOffset(ax_offset);
-        mpu.SetYAccelOffset(ay_offset);
-        mpu.SetZAccelOffset(az_offset);
+        mpu.SetAccelXOffset(ax_offset);
+        mpu.SetAccelYOffset(ay_offset);
+        mpu.SetAccelZOffset(az_offset);
 
-        mpu.SetXGyroOffset(gx_offset);
-        mpu.SetYGyroOffset(gy_offset);
-        mpu.SetZGyroOffset(gz_offset);
+        mpu.SetGyroXOffset(gx_offset);
+        mpu.SetGyroYOffset(gy_offset);
+        mpu.SetGyroZOffset(gz_offset);
 
         GetAverage(&(*ax_mean), &(*ay_mean), &(*az_mean), &(*gx_mean), &(*gy_mean), &(*gz_mean));
 
@@ -163,8 +163,8 @@ int main(int argc, char **argv) {
     // Saving to external file
     std::ofstream ofile;
     ofile.open(file_name);
-    ofile << "XAccelOffset" << "," << "YAccelOffset" << "," << "ZAccelOffset" << ",";
-    ofile << "XGyroOffset" << "," << "YGyroOffset" << "," << "ZGyroOffset" << std::endl;
+    ofile << "AccelXOffset" << "," << "AccelYOffset" << "," << "AccelZOffset" << ",";
+    ofile << "GyroXOffset" << "," << "GyroYOffset" << "," << "GyroZOffset" << std::endl;
     ofile << ax_offset << "," << ay_offset << "," << az_offset << "," << gx_offset << "," << gy_offset << "," << gz_offset << std::endl;
     ofile.close();
 
