@@ -74,25 +74,28 @@ int main(int argc, char **argv) {
 
     int16_t ax, ay, az, gx, gy, gz;
 
+    // ====== Raw Sensor Data ======
+    std::cout << "Raw Sensor Data\n";
+    std::cout << std::fixed << std::setprecision(6) << std::setfill(' ');
+    std::cout << std::setw(9) << 'X' << std::setw(9) << 'Y' << std::setw(9) << 'Z';
+    std::cout << std::setw(9) << 'X' << std::setw(9) << 'Y' << std::setw(9) << 'Z';
+    std::cout << std::endl;
+
     // Publish in loop.
-    while(1) {    
+    while(1) {
+        // Choose between two methods here:
+        // 1. Get from one single function for both accelerometer and gyroscope
+        mpu.GetMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+
+        // 2. Get separated gyroscope and accelerometer
         // Get gyroscope data.
-        // The result is already scaled by the sensitivity.
-        mpu.GetGyro(&gx, &gy, &gz);
-
+        // mpu.GetGyro(&gx, &gy, &gz);
         // Get accelerometer values.
-        // The result is scaled to its default range +- 2g.
-        mpu.GetAccel(&ax, &ay, &az);
+        // mpu.GetAccel(&ax, &ay, &az);
 
-        std::cout << std::fixed << std::setprecision(6) << std::setfill(' ');
-        std::cout << std::setw(9) << ax << " ";
-        std::cout << std::setw(9) << ay << " ";
-        std::cout << std::setw(9) << az << " ";
-        // std::cout << std::endl;
-        std::cout << std::setw(9) << gx << " ";
-        std::cout << std::setw(9) << gy << " ";
-        std::cout << std::setw(9) << gz << " ";
-        std::cout << std::endl;
+        std::cout << std::setw(9) << ax << std::setw(9) << ay << std::setw(9) << az;
+        std::cout << std::setw(9) << gx << std::setw(9) << gy << std::setw(9) << gz;
+        std::cout << "\r";
     }
     return 0;
 }
