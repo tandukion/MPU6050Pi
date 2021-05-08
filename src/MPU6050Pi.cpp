@@ -18,7 +18,7 @@ MPU6050Pi::MPU6050Pi() {
     MPU6050Pi::SetDLPFMode(DLPF_BW_44);
 
     // Set sample rate divider to 200Hz, div=5.
-    MPU6050Pi::SetRate(0x05);
+    MPU6050Pi::SetSampleRateDivider(0x05);
 
     // Configure gyroscope setting with default range
     MPU6050Pi::SetFullScaleGyroRange(0);
@@ -49,7 +49,7 @@ MPU6050Pi::MPU6050Pi(int16_t *offsets) {
     MPU6050Pi::SetDLPFMode(DLPF_BW_44);
 
     // Set sample rate divider to 200Hz, div=5.
-    MPU6050Pi::SetRate(0x05);
+    MPU6050Pi::SetSampleRateDivider(0x05);
 
     // Configure gyroscope setting with default range
     MPU6050Pi::SetFullScaleGyroRange(0);
@@ -70,12 +70,33 @@ MPU6050Pi::MPU6050Pi(int16_t *offsets) {
  *      CONFIGURATION
  *  ============================================================
  */
-void MPU6050Pi::SetRate(uint8_t rate) {
+void MPU6050Pi::SetSampleRateDivider(uint8_t rate) {
     I2CPi::WriteByte(fd_, SMPLRT_DIV, rate);
+
+    sample_rate_ = gyro_rate_/(1+rate);
+}
+
+float MPU6050Pi::GetSampleRate() {
+    return sample_rate_;
 }
 
 void MPU6050Pi::SetDLPFMode(uint8_t mode) {
-    I2CPi::WriteByte(fd_, CONFIG, mode);
+    // Get current CONFIG
+    int8_t config;
+    config = I2CPi::ReadByte(fd_, CONFIG);
+
+    // Set only the DLPF_CFG
+    config = (config & 0x38) + mode;
+
+    // Set sample rate based on DLPF_CFG
+    if ((mode == DLPF_BW_260) || (mode > DLPF_BW_5)){
+        gyro_rate_ = 8; // 8 kHz
+    }
+    else {
+        gyro_rate_ = 1; // 1 kHz
+    }
+
+    I2CPi::WriteByte(fd_, CONFIG, config);
 }
 
 void MPU6050Pi::SetFullScaleGyroRange(uint8_t range) {

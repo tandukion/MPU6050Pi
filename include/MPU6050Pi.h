@@ -153,6 +153,8 @@ class MPU6050Pi {
 
         float gyro_sensitivity_;
         float accel_sensitivity_;
+        float gyro_rate_;
+        float sample_rate_;
 
     public:
         /** ============================================================
@@ -179,7 +181,11 @@ class MPU6050Pi {
          * 
          * @param rate {uint8_t} Sample rate divider 
          */
-        void SetRate(uint8_t rate);
+        void SetSampleRateDivider(uint8_t rate);
+        /**
+         * Return current sample rate
+         */
+        float GetSampleRate();
 
         /**
          * Set Digital Low Pass Filter (DLPF) mode. See register map datasheet for DLPF_CFG.
@@ -187,6 +193,10 @@ class MPU6050Pi {
          * @param mode {uint8_t} Value for DLPF_CFG
          */
         void SetDLPFMode(uint8_t mode);
+        /**
+         * Return the current DLPF_CFG from CONFIG register
+         */
+        uint8_t GetDLPFMode();
 
         /**
          * Set Gyroscope FullScale Range
