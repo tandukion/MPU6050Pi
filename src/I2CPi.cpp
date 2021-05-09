@@ -5,6 +5,25 @@ int I2CPi::Setup(uint8_t dev_address) {
     return wiringPiI2CSetup(dev_address);
 }
 
+int8_t I2CPi::ReadBit(int fd, uint8_t reg_address, uint8_t bit_number){
+    int8_t b = I2CPi::ReadByte(fd, reg_address);
+    int8_t mask = 1<<bit_number;
+
+    // std::cout << "Byte: " << (int)b << std::endl;
+    // std::cout << "Bit" << (int)bit_number << ": " << (int)((b & mask) >> bit_number) << std::endl;
+    return (b & mask) >> bit_number;
+}
+int8_t I2CPi::ReadBits(int fd, uint8_t reg_address, uint8_t bit_start, uint8_t length){
+    int8_t b = I2CPi::ReadByte(fd, reg_address);
+    // Create masking from bit_start and length
+    // e.g: (3,4) -> mask = 0b01111000
+    int8_t mask = (int8_t)pow(2,length) - 1 << bit_start;
+
+    // std::cout << "Byte: " << (int)b << std::endl;
+    // std::cout << "Bit(" << (int)bit_start << "," << (int)length << "): " << (int)((b & mask) >> bit_start) << std::endl;
+    return (b & mask) >> bit_start;
+}
+
 int8_t I2CPi::ReadByte(int fd, uint8_t reg_address){
     return (int8_t) wiringPiI2CReadReg8(fd, reg_address);
 }
@@ -12,8 +31,35 @@ int16_t I2CPi::ReadWord(int fd, uint8_t reg_address){
     int high = wiringPiI2CReadReg8(fd, reg_address);
     int low = wiringPiI2CReadReg8(fd, reg_address+1);
     int16_t val = (high << 8) + low;
+
     // std::cout << std::hex << high << " " << low << " " << val << std::endl;
     return val;
+}
+
+void I2CPi::WriteBit(int fd, uint8_t reg_address, uint8_t data, uint8_t bit_number){
+    uint8_t b = I2CPi::ReadByte(fd, reg_address);
+    uint8_t write_data = (data == 1) ? (b | (1<<bit_number)) : (b & ~(1 << bit_number));
+
+    // std::cout << "Byte: " << std::bitset<8>(b) << std::endl;
+    // std::cout << "write_data (" << (int)data << "," << (int)bit_number << "): " << std::bitset<8>(write_data) << std::endl;
+    I2CPi::WriteByte(fd, reg_address, write_data);
+}
+void I2CPi::WriteBits(int fd, uint8_t reg_address, uint8_t data, uint8_t bit_start, uint8_t length){
+    uint8_t b = I2CPi::ReadByte(fd, reg_address);
+    // std::cout << "Byte: " << std::bitset<8>(b) << std::endl;
+
+    // Create masking based data, bit_start, and length
+    uint8_t mask = (uint8_t)pow(2,length) - 1 << bit_start;
+    // std::cout << "Mask: " << std::bitset<8>(mask) << std::endl;
+
+    // Mask current data
+    uint8_t write_data = b & ~mask;
+    // std::cout << "Masked data: " << std::bitset<8>(write_data) << std::endl;
+
+    // Add data to masked data
+    write_data |= data << bit_start;
+    // std::cout << "write_data: " << std::bitset<8>(write_data) << std::endl;
+    I2CPi::WriteByte(fd, reg_address, write_data);
 }
 
 void I2CPi::WriteByte(int fd, uint8_t reg_address, uint8_t data) {
