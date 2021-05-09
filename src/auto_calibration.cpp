@@ -44,6 +44,7 @@ void GetAverage(int* ax_mean, int* ay_mean, int* az_mean, int* gx_mean, int* gy_
 }
 
 void Calibrate(int* ax_mean, int* ay_mean, int* az_mean, int* gx_mean, int* gy_mean, int* gz_mean){  
+    // Threshold for allower error. Reduce to reduce error, but will be more difficult to converge 
     int accel_error_threshold = 8;
     int gyro_error_threshold = 1;
 
@@ -54,21 +55,8 @@ void Calibrate(int* ax_mean, int* ay_mean, int* az_mean, int* gx_mean, int* gy_m
     gy_offset = - *gy_mean/4;
     gz_offset = - *gz_mean/4;
 
-    // Check which axis on gravity axis
-    std::vector<int> accel{abs(ax_offset), abs(ay_offset), abs(az_offset)};
-    std::vector<int>::iterator max = std::max_element(accel.begin(), accel.end());
-    int g_axis = std::distance(accel.begin(), max);
-    switch (g_axis) {
-        case 0:
-            ax_offset += mpu.GetAccelSensitivity() / 8;
-            break;
-        case 1:
-            ay_offset += mpu.GetAccelSensitivity() / 8;
-            break;
-        case 2:
-            az_offset += mpu.GetAccelSensitivity() / 8;
-            break;
-    }
+    // Handle gravity axis (default when calibrating on flat position = Z-axis)
+    az_offset += mpu.GetAccelSensitivity() / 8;
 
     bool ready = false;
     int error;
@@ -97,8 +85,14 @@ void Calibrate(int* ax_mean, int* ay_mean, int* az_mean, int* gx_mean, int* gy_m
             ay_offset -= *ay_mean / accel_error_threshold;
             error ++;
         }
-        if (abs(*az_mean) > accel_error_threshold) {
+        // if (abs(*az_mean) > accel_error_threshold) {
+        //     az_offset -= *az_mean / accel_error_threshold;
+        //     error ++;
+        // }
+        // Need to retain +1g for gravity
+        if (abs(*az_mean - mpu.GetAccelSensitivity()) > accel_error_threshold) {
             az_offset -= *az_mean / accel_error_threshold;
+            az_offset += mpu.GetAccelSensitivity() / accel_error_threshold;
             error ++;
         }
 
@@ -119,6 +113,10 @@ void Calibrate(int* ax_mean, int* ay_mean, int* az_mean, int* gx_mean, int* gy_m
 }
 
 int main(int argc, char **argv) {
+    std::cout << "Calibrating MPU6050." << std::endl;
+    std::cout << "Please do this calibration with MPU6050 on flat surface (gravity on Z-axis)." << std::endl;
+    std::cout << std::endl;
+
     // Check whether previously created calibration file exists
     std::string file_name = "calibration_file.csv";
     struct stat buf;
