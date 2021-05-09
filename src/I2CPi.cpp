@@ -47,7 +47,7 @@ int16_t I2CPi::ReadWord(int fd, uint8_t reg_address){
     return val;
 }
 
-void I2CPi::WriteBit(int fd, uint8_t reg_address, uint8_t data, uint8_t bit_number){
+void I2CPi::WriteBit(int fd, uint8_t reg_address, uint8_t bit_number, uint8_t data){
     uint8_t b = I2CPi::ReadByte(fd, reg_address);
     uint8_t write_data = (data == 1) ? (b | (1<<bit_number)) : (b & ~(1 << bit_number));
 
@@ -56,7 +56,7 @@ void I2CPi::WriteBit(int fd, uint8_t reg_address, uint8_t data, uint8_t bit_numb
     I2CPi::WriteByte(fd, reg_address, write_data);
 }
 
-void I2CPi::WriteBits(int fd, uint8_t reg_address, uint8_t data, uint8_t bit_start, uint8_t length){
+void I2CPi::WriteBits(int fd, uint8_t reg_address, uint8_t bit_start, uint8_t length, uint8_t data){
     uint8_t b = I2CPi::ReadByte(fd, reg_address);
     // std::cout << "Byte: " << std::bitset<8>(b) << std::endl;
 

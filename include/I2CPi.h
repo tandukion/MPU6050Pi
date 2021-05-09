@@ -81,21 +81,21 @@ class I2CPi {
          * 
          * @param fd            {int}       I2C device file handler
          * @param reg_address   {uint8_t}   register address
-         * @param data          {uint8_t}   data to write
          * @param bit_number    {uint8_t}   bit to write (0-7)
+         * @param data          {uint8_t}   data to write
          */
-        static void WriteBit(int fd, uint8_t reg_address, uint8_t data, uint8_t bit_number);
+        static void WriteBit(int fd, uint8_t reg_address, uint8_t bit_number, uint8_t data);
 
         /**
          * Write bits to the given register address 
          * 
          * @param fd            {int}       I2C device file handler
          * @param reg_address   {uint8_t}   register address
-         * @param data          {uint8_t}   data to write
          * @param bit_start     {uint8_t}   start bit to write (0-7)
          * @param length        {uint8_t}   length of bits to write (<=8)
+         * @param data          {uint8_t}   data to write
          */
-        static void WriteBits(int fd, uint8_t reg_address, uint8_t data, uint8_t bit_start, uint8_t length);
+        static void WriteBits(int fd, uint8_t reg_address, uint8_t bit_start, uint8_t length, uint8_t data);
         /**
          * Write a byte to the given register address
          * 
