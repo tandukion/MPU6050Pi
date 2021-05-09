@@ -13,6 +13,7 @@ int8_t I2CPi::ReadBit(int fd, uint8_t reg_address, uint8_t bit_number){
     // std::cout << "Bit" << (int)bit_number << ": " << (int)((b & mask) >> bit_number) << std::endl;
     return (b & mask) >> bit_number;
 }
+
 int8_t I2CPi::ReadBits(int fd, uint8_t reg_address, uint8_t bit_start, uint8_t length){
     int8_t b = I2CPi::ReadByte(fd, reg_address);
     // Create masking from bit_start and length
@@ -27,10 +28,20 @@ int8_t I2CPi::ReadBits(int fd, uint8_t reg_address, uint8_t bit_start, uint8_t l
 int8_t I2CPi::ReadByte(int fd, uint8_t reg_address){
     return (int8_t) wiringPiI2CReadReg8(fd, reg_address);
 }
+
+int8_t* I2CPi::ReadBytes(int fd, uint8_t reg_address, uint8_t length){
+    int8_t *data = new int8_t[length];
+    int i;
+    for (i=0;i<length;i++){
+        data[i] = wiringPiI2CReadReg8(fd, reg_address+i);
+    }
+    return data;
+}
+
 int16_t I2CPi::ReadWord(int fd, uint8_t reg_address){
     int high = wiringPiI2CReadReg8(fd, reg_address);
     int low = wiringPiI2CReadReg8(fd, reg_address+1);
-    int16_t val = (high << 8) + low;
+    int16_t val = ((int16_t)high << 8) | low;
 
     // std::cout << std::hex << high << " " << low << " " << val << std::endl;
     return val;
@@ -44,6 +55,7 @@ void I2CPi::WriteBit(int fd, uint8_t reg_address, uint8_t data, uint8_t bit_numb
     // std::cout << "write_data (" << (int)data << "," << (int)bit_number << "): " << std::bitset<8>(write_data) << std::endl;
     I2CPi::WriteByte(fd, reg_address, write_data);
 }
+
 void I2CPi::WriteBits(int fd, uint8_t reg_address, uint8_t data, uint8_t bit_start, uint8_t length){
     uint8_t b = I2CPi::ReadByte(fd, reg_address);
     // std::cout << "Byte: " << std::bitset<8>(b) << std::endl;
@@ -65,6 +77,14 @@ void I2CPi::WriteBits(int fd, uint8_t reg_address, uint8_t data, uint8_t bit_sta
 void I2CPi::WriteByte(int fd, uint8_t reg_address, uint8_t data) {
     wiringPiI2CWriteReg8(fd, reg_address, data);
 }
+
+void I2CPi::WriteBytes(int fd, uint8_t reg_address, uint8_t *data, uint8_t length){
+    int i;
+    for (i=0;i<length;i++){
+        I2CPi::WriteByte(fd, reg_address+i, data[i]);
+    }
+}
+
 void I2CPi::WriteWord(int fd, uint8_t reg_address, uint16_t data) {
     uint8_t ms_byte = (uint8_t) (data >> 8);
     uint8_t ls_byte = (uint8_t) (data >> 0);
