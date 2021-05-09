@@ -123,6 +123,19 @@
 #define WHO_AM_I                0x75
 
 /**
+ * Bit selector
+ */
+#define CONFIG_DLPF_CFG_START       0
+#define CONFIG_DLPF_CFG_LENGTH      3
+
+#define PWR_MGMT_1_CLKSEL_START     0
+#define PWR_MGMT_1_CLKSEL_LENGTH    3
+#define PWR_MGMT_1_TEMP_DIS_BIT     3
+#define PWR_MGMT_1_CYCLE_BIT        5
+#define PWR_MGMT_1_SLEEP_BIT        6
+#define PWR_MGMT_1_RESET_BIT        7
+
+/**
  * Parameter Settings
  */
 #define FS_SEL_250              0x00
@@ -143,13 +156,24 @@
 #define DLPF_BW_10              0x05
 #define DLPF_BW_5               0x06
 
+#define CLOCK_INTERNAL          0x00
+#define CLOCK_PLL_XGYRO         0x01
+#define CLOCK_PLL_YGYRO         0x02
+#define CLOCK_PLL_ZGYRO         0x03
+#define CLOCK_PLL_EXT32K        0x04
+#define CLOCK_PLL_EXT19M        0x05
+#define CLOCK_KEEP_RESET        0x07
+
+#define SLEEP_DISABLED          0
+#define SLEEP_ENABLED           1
+
 /**
  * Class for MPU6050 sensor reading using Raspberry Pi GPIO.
  */ 
 class MPU6050Pi {
     private:
         uint8_t I2C_address_;
-        int fd_;
+        int fd_;    // I2C device file handler
 
         float gyro_sensitivity_;
         float accel_sensitivity_;
@@ -285,6 +309,29 @@ class MPU6050Pi {
          * @param offset {int16_t} offset
          */
         void SetGyroZOffset(int16_t offset);
+
+        /**
+         * Set Clock source. Upon pwer up, by default CLK_SEL=0 for internal oscillator.
+         * CLK_SEL  |   Clock Source
+        *     0     |   Internal oscillator
+        *     1     |   PLL with X Gyro reference
+        *     2     |   PLL with Y Gyro reference
+        *     3     |   PLL with Z Gyro reference
+        *     4     |   PLL with external 32.768kHz reference
+        *     5     |   PLL with external 19.2MHz reference
+        *     6     |   Reserved
+        *     7     |   Stops the clock and keeps the timing generator in reset
+         * 
+         * @param offset {int16_t} offset
+         */
+        void SetClockSource(uint8_t clk_sel);
+
+        /**
+         * Set Sleep mode
+         * 
+         * @param mode {uint8_t} 0: disabled, 1: sleep mode
+         */
+        void SetSleepMode(uint8_t mode);
 
         /** ============================================================
          *      DATA

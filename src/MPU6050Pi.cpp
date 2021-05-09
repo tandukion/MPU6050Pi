@@ -11,8 +11,11 @@ MPU6050Pi::MPU6050Pi() {
     // Initialize the I2C device file handler
     fd_ = I2CPi::Setup(0x68);
 
+    // Set Clock Source. Better to use X gyro as reference
+    MPU6050Pi::SetClockSource(CLOCK_PLL_XGYRO);
+
     // Disable SLEEP mode
-    I2CPi::WriteByte(fd_, PWR_MGMT_1, 0x00);
+    MPU6050Pi::SetSleepMode(SLEEP_DISABLED);
 
     // Set DLPF (Digital Low Pass Filter) to 44Hz. Check table in Register Map.
     MPU6050Pi::SetDLPFMode(DLPF_BW_44);
@@ -42,8 +45,11 @@ MPU6050Pi::MPU6050Pi(int16_t *offsets) {
     // Initialize the I2C device file handler
     fd_ = I2CPi::Setup(0x68);
 
+    // Set Clock Source. Better to use X gyro as reference
+    MPU6050Pi::SetClockSource(CLOCK_PLL_XGYRO);
+
     // Disable SLEEP mode
-    I2CPi::WriteByte(fd_, PWR_MGMT_1, 0x00);
+    MPU6050Pi::SetSleepMode(SLEEP_DISABLED);
 
     // Set DLPF (Digital Low Pass Filter) to 44Hz. Check table in Register Map.
     MPU6050Pi::SetDLPFMode(DLPF_BW_44);
@@ -81,13 +87,6 @@ float MPU6050Pi::GetSampleRate() {
 }
 
 void MPU6050Pi::SetDLPFMode(uint8_t mode) {
-    // Get current CONFIG
-    int8_t config;
-    config = I2CPi::ReadByte(fd_, CONFIG);
-
-    // Set only the DLPF_CFG
-    config = (config & 0x38) + mode;
-
     // Set sample rate based on DLPF_CFG
     if ((mode == DLPF_BW_260) || (mode > DLPF_BW_5)){
         gyro_rate_ = 8; // 8 kHz
@@ -96,7 +95,8 @@ void MPU6050Pi::SetDLPFMode(uint8_t mode) {
         gyro_rate_ = 1; // 1 kHz
     }
 
-    I2CPi::WriteByte(fd_, CONFIG, config);
+    // Set only the DLPF_CFG on bit 0,1,2
+    I2CPi::WriteBits(fd_, CONFIG, mode, CONFIG_DLPF_CFG_START, CONFIG_DLPF_CFG_LENGTH);
 }
 
 void MPU6050Pi::SetFullScaleGyroRange(uint8_t range) {
@@ -189,6 +189,16 @@ void MPU6050Pi::SetGyroYOffset(int16_t offset) {
 }
 void MPU6050Pi::SetGyroZOffset(int16_t offset) {
     I2CPi::WriteWord(fd_, ZG_OFFSET_H, offset);
+}
+
+void MPU6050Pi::SetClockSource(uint8_t clk_sel) {
+    // Set only the PWR_MGMT_1 on bit 0,1,2
+    I2CPi::WriteBits(fd_, PWR_MGMT_1, clk_sel, PWR_MGMT_1_CLKSEL_START, PWR_MGMT_1_CLKSEL_LENGTH);
+}
+
+void MPU6050Pi::SetSleepMode(uint8_t mode){
+    // Set only the PWR_MGMT_1 on bit PWR_MGMT_1_SLEEP_BIT
+    I2CPi::WriteBit(fd_, PWR_MGMT_1, mode, PWR_MGMT_1_SLEEP_BIT);
 }
 
 /** ============================================================
