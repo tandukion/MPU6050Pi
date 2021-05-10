@@ -5,43 +5,43 @@ int I2CPi::Setup(uint8_t dev_address) {
     return wiringPiI2CSetup(dev_address);
 }
 
-int8_t I2CPi::ReadBit(int fd, uint8_t reg_address, uint8_t bit_number){
-    int8_t b = I2CPi::ReadByte(fd, reg_address);
-    int8_t mask = 1<<bit_number;
+uint8_t I2CPi::ReadBit(int fd, uint8_t reg_address, uint8_t bit_number){
+    uint8_t b = I2CPi::ReadByte(fd, reg_address);
+    uint8_t mask = 1<<bit_number;
 
     // std::cout << "Byte: " << (int)b << std::endl;
     // std::cout << "Bit" << (int)bit_number << ": " << (int)((b & mask) >> bit_number) << std::endl;
     return (b & mask) >> bit_number;
 }
 
-int8_t I2CPi::ReadBits(int fd, uint8_t reg_address, uint8_t bit_start, uint8_t length){
-    int8_t b = I2CPi::ReadByte(fd, reg_address);
+uint8_t I2CPi::ReadBits(int fd, uint8_t reg_address, uint8_t bit_start, uint8_t length){
+    uint8_t b = I2CPi::ReadByte(fd, reg_address);
     // Create masking from bit_start and length
     // e.g: (3,4) -> mask = 0b01111000
-    int8_t mask = (int8_t)pow(2,length) - 1 << bit_start;
+    uint8_t mask = (uint8_t)pow(2,length) - 1 << bit_start;
 
     // std::cout << "Byte: " << (int)b << std::endl;
     // std::cout << "Bit(" << (int)bit_start << "," << (int)length << "): " << (int)((b & mask) >> bit_start) << std::endl;
     return (b & mask) >> bit_start;
 }
 
-int8_t I2CPi::ReadByte(int fd, uint8_t reg_address){
-    return (int8_t) wiringPiI2CReadReg8(fd, reg_address);
+uint8_t I2CPi::ReadByte(int fd, uint8_t reg_address){
+    return (uint8_t) wiringPiI2CReadReg8(fd, reg_address);
 }
 
-int8_t* I2CPi::ReadBytes(int fd, uint8_t reg_address, uint8_t length){
-    int8_t *data = new int8_t[length];
+uint8_t* I2CPi::ReadBytes(int fd, uint8_t reg_address, uint8_t length){
+    uint8_t *data = new uint8_t[length];
     int i;
     for (i=0;i<length;i++){
-        data[i] = wiringPiI2CReadReg8(fd, reg_address+i);
+        data[i] = (uint8_t)wiringPiI2CReadReg8(fd, reg_address+i);
     }
     return data;
 }
 
-int16_t I2CPi::ReadWord(int fd, uint8_t reg_address){
+uint16_t I2CPi::ReadWord(int fd, uint8_t reg_address){
     int high = wiringPiI2CReadReg8(fd, reg_address);
     int low = wiringPiI2CReadReg8(fd, reg_address+1);
-    int16_t val = ((int16_t)high << 8) | low;
+    uint16_t val = ((uint16_t)high << 8) | low;
 
     // std::cout << std::hex << high << " " << low << " " << val << std::endl;
     return val;
