@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <thread>
 #include <chrono>
@@ -6,13 +7,40 @@
 #include <vector>
 #include <sys/stat.h>
 
-#include <MPU6050Pi.h>
+#include <stdio.h>
+#include <bcm2835.h>
+#include "I2Cdev.h"
+#include "MPU6050.h"
 
 
-MPU6050Pi mpu;
+MPU6050 mpu;
 int16_t ax, ay, az, gx, gy, gz;
 int ax_mean, ay_mean, az_mean, gx_mean, gy_mean, gz_mean;
 int ax_offset, ay_offset, az_offset, gx_offset, gy_offset, gz_offset;
+
+float accel_sensitivity = 0;
+
+float GetAccelSensitivity() {
+    /*
+    *  AFS_SEL  | Full Scale Range |   LSB Sensitivity
+    *      0           2 g              16384 LSB/g
+    *      1           4 g               8192 LSB/g
+    *      2           8 g               4096 LSB/g
+    *      3          16 g               2048 LSB/g
+    */
+    float LSB_sensitivity[] = {
+        16384.0,
+        8192.0,
+        4096.0,
+        2048.0,
+    };
+
+    // get AFS_SEL bit data
+    uint8_t accel_fs;
+    accel_fs = mpu.getFullScaleAccelRange();
+
+    return LSB_sensitivity[accel_fs];
+}
 
 void GetAverage(int* ax_mean, int* ay_mean, int* az_mean, int* gx_mean, int* gy_mean, int* gz_mean) {
     int i;
@@ -22,7 +50,12 @@ void GetAverage(int* ax_mean, int* ay_mean, int* az_mean, int* gx_mean, int* gy_
     int ax_buffer=0, ay_buffer=0, az_buffer=0, gx_buffer=0, gy_buffer=0, gz_buffer=0;
 
     for (i=0; i < buffer_size+100; i++) {
-        mpu.GetMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+        mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+        
+        std::cout << "Read: ";
+        std::cout << std::setw(9) << ax << std::setw(9) << ay << std::setw(9) << az;
+        std::cout << std::setw(9) << gx << std::setw(9) << gy << std::setw(9) << gz;
+        std::cout << "\r";
 
         if (i >=100) {
             ax_buffer += ax;
@@ -56,25 +89,27 @@ void Calibrate(int* ax_mean, int* ay_mean, int* az_mean, int* gx_mean, int* gy_m
     gz_offset = - *gz_mean/4;
 
     // Handle gravity axis (default when calibrating on flat position = Z-axis)
-    az_offset += mpu.GetAccelSensitivity() / 8;
+    az_offset += accel_sensitivity / 8;
 
     bool ready = false;
     int error;
     while (error>0) {
         error = 0;
 
-        mpu.SetAccelXOffset(ax_offset);
-        mpu.SetAccelYOffset(ay_offset);
-        mpu.SetAccelZOffset(az_offset);
+        mpu.setXAccelOffset(ax_offset);
+        mpu.setYAccelOffset(ay_offset);
+        mpu.setZAccelOffset(az_offset);
 
-        mpu.SetGyroXOffset(gx_offset);
-        mpu.SetGyroYOffset(gy_offset);
-        mpu.SetGyroZOffset(gz_offset);
+        mpu.setXGyroOffset(gx_offset);
+        mpu.setYGyroOffset(gy_offset);
+        mpu.setZGyroOffset(gz_offset);
 
         GetAverage(&(*ax_mean), &(*ay_mean), &(*az_mean), &(*gx_mean), &(*gy_mean), &(*gz_mean));
 
         std::cout << "Mean: ";
-        std::cout << *ax_mean << " " << *ay_mean << " " << *az_mean << " " << *gx_mean << " " << *gy_mean << " " << *gz_mean << std::endl;
+        std::cout << std::setw(9) << *ax_mean << std::setw(9) << *ay_mean << std::setw(9) << *az_mean;
+        std::cout << std::setw(9) << *gx_mean << std::setw(9) << *gy_mean << std::setw(9) << *gz_mean;
+        std::cout << std::endl;
 
         // Correcting accelerometer offset
         if (abs(*ax_mean) > accel_error_threshold) {
@@ -90,9 +125,9 @@ void Calibrate(int* ax_mean, int* ay_mean, int* az_mean, int* gx_mean, int* gy_m
         //     error ++;
         // }
         // Need to retain +1g for gravity
-        if (abs(*az_mean - mpu.GetAccelSensitivity()) > accel_error_threshold) {
+        if (abs(*az_mean - accel_sensitivity) > accel_error_threshold) {
             az_offset -= *az_mean / accel_error_threshold;
-            az_offset += mpu.GetAccelSensitivity() / accel_error_threshold;
+            az_offset += accel_sensitivity / accel_error_threshold;
             error ++;
         }
 
@@ -141,12 +176,20 @@ int main(int argc, char **argv) {
         std::cout << "No existing calibration file. Creating a new one." << std::endl;
     }
 
+    // Start I2C device
+    I2Cdev::initialize();
+
+    // Get accel sensitivity
+    accel_sensitivity = GetAccelSensitivity();
+
     // Get the average from sensor reading
     std::cout << "\nGet the average from sensors" << std::endl;
     GetAverage(&ax_mean, &ay_mean, &az_mean, &gx_mean, &gy_mean, &gz_mean);
 
     std::cout << "Mean: ";
-    std::cout << ax_mean << " " << ay_mean << " " << az_mean << " " << gx_mean << " " << gy_mean << " " << gz_mean << std::endl;
+    std::cout << std::setw(9) << ax_mean << std::setw(9) << ay_mean << std::setw(9) << az_mean;
+    std::cout << std::setw(9) << gx_mean << std::setw(9) << gy_mean << std::setw(9) << gz_mean;
+    std::cout << std::endl;
 
     std::this_thread::sleep_for (std::chrono::seconds(1));
 
@@ -156,14 +199,18 @@ int main(int argc, char **argv) {
 
     std::cout << "\nCalibration finished" << std::endl;
     std::cout << "Offset:" << std::endl;
-    std::cout << ax_offset << " " << ay_offset << " " << az_offset << " " << gx_offset << " " << gy_offset << " " << gz_offset << std::endl;
+    std::cout << std::setw(9) << ax_offset << std::setw(9) << ay_offset << std::setw(9) << az_offset;
+    std::cout << std::setw(9) << gx_offset << std::setw(9) << gy_offset << std::setw(9) << gz_offset;
+    std::cout << std::endl;
 
     // Saving to external file
     std::ofstream ofile;
     ofile.open(file_name);
     ofile << "AccelXOffset" << "," << "AccelYOffset" << "," << "AccelZOffset" << ",";
     ofile << "GyroXOffset" << "," << "GyroYOffset" << "," << "GyroZOffset" << std::endl;
-    ofile << ax_offset << "," << ay_offset << "," << az_offset << "," << gx_offset << "," << gy_offset << "," << gz_offset << std::endl;
+    std::cout << std::setw(9) << ax_offset << std::setw(9) << ay_offset << std::setw(9) << az_offset;
+    std::cout << std::setw(9) << gx_offset << std::setw(9) << gy_offset << std::setw(9) << gz_offset;
+    std::cout << std::endl;
     ofile.close();
 
     return 0;

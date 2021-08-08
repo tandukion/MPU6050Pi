@@ -4,7 +4,36 @@
 #include <string.h>
 
 
-#include <MPU6050Pi.h>
+#include "MPU6050.h"
+
+/*
+*  AFS_SEL  | Full Scale Range |   LSB Sensitivity
+*      0           2 g              16384 LSB/g
+*      1           4 g               8192 LSB/g
+*      2           8 g               4096 LSB/g
+*      3          16 g               2048 LSB/g
+*/
+float accel_lsb[] = {
+    16384.0,
+    8192.0,
+    4096.0,
+    2048.0,
+};
+/*
+* Set Gyroscope FullScale Range
+*  FS_SEL  | Full Scale Range  |   LSB Sensitivity
+*      0           250 deg/s           131 LSB/deg/s
+*      1           500 deg/s          65.5 LSB/deg/s
+*      2          1000 deg/s          32.8 LSB/deg/s
+*      3          2000 deg/s          16.4 LSB/deg/s
+*/
+
+float gyro_lsb[] = {
+    131.0,
+    65.5,
+    32.8,
+    16.4,
+};
 
 int16_t* GetCalibrationData (char *filename) {
     int16_t *offsets = new int16_t[6];
@@ -57,15 +86,24 @@ int16_t* GetCalibrationData (char *filename) {
 }
 
 int main(int argc, char **argv) {
+    // Start I2C device
+    I2Cdev::initialize();
+    
     // Connect to device with default setting
-    MPU6050Pi mpu;
+    MPU6050 mpu;
 
     if (argc > 1){
         int16_t *offsets;
 
         offsets = GetCalibrationData(argv[1]);
         if (offsets){
-            mpu.SetOffset(offsets);
+            // mpu.SetOffset(offsets);
+            mpu.setXAccelOffset(offsets[0]);
+            mpu.setYAccelOffset(offsets[1]);
+            mpu.setZAccelOffset(offsets[2]);
+            mpu.setXGyroOffset(offsets[3]);
+            mpu.setYGyroOffset(offsets[4]);
+            mpu.setZGyroOffset(offsets[5]);
         }
         else {
             std::cout << "Proceed with default offsets" << std::endl;
@@ -98,7 +136,7 @@ int main(int argc, char **argv) {
             while(1) {
                 // Choose between two methods here:
                 // 1. Get from one single function for both accelerometer and gyroscope
-                mpu.GetMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+                mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
 
                 // 2. Get separated gyroscope and accelerometer
                 // Get gyroscope data.
@@ -112,6 +150,12 @@ int main(int argc, char **argv) {
             }
             break;
         case 2:
+            // get AFS_SEL bit data
+            uint8_t accel_fs = mpu.getFullScaleAccelRange();
+            float accel_sensitivity = accel_lsb[accel_fs];
+            uint8_t gyro_fs = mpu.getFullScaleGyroRange();
+            float gyro_sensitivity = gyro_lsb[gyro_fs];
+            
             // ====== Float Sensor Data ======
             std::cout << "Float Sensor Data\n";
             std::cout << std::fixed << std::setprecision(6) << std::setfill(' ');
@@ -121,10 +165,18 @@ int main(int argc, char **argv) {
 
             // Publish in loop.
             while(1) {
-                // Get gyroscope data.
-                mpu.GetGyroFloat(&gyro_x, &gyro_y, &gyro_z);
-                // Get accelerometer values.
-                mpu.GetAccelFloat(&accel_x, &accel_y, &accel_z);
+                // // Get gyroscope data.
+                // mpu.GetGyroFloat(&gyro_x, &gyro_y, &gyro_z);
+                // // Get accelerometer values.
+                // mpu.GetAccelFloat(&accel_x, &accel_y, &accel_z);
+
+                mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+                accel_x = (float) ax / accel_sensitivity;
+                accel_y = (float) ay / accel_sensitivity;
+                accel_z = (float) az / accel_sensitivity;
+                gyro_x = (float) gx / gyro_sensitivity;
+                gyro_y = (float) gy / gyro_sensitivity;
+                gyro_z = (float) gz / gyro_sensitivity;
 
                 std::cout << std::setw(10) << accel_x << std::setw(10) << accel_y << std::setw(10) << accel_z;
                 std::cout << std::setw(10) << gyro_x << std::setw(10) << gyro_y << std::setw(10) << gyro_z;
