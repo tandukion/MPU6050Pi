@@ -20,11 +20,15 @@ add_library(
 target_link_libraries(
     MPU6050Pi
     libwiringPi.so
+    bcm2835
 )
 
 # Create executable and its libraries
 add_executable(read_MPU6050Pi example/read_MPU6050Pi.cpp)
 target_link_libraries(read_MPU6050Pi MPU6050Pi)
+
+add_executable(MPU6050_example_1 example/MPU6050_example_1.cpp)
+target_link_libraries(MPU6050_example_1 MPU6050Pi)
 
 add_executable(auto_calibration src/auto_calibration.cpp)
 target_link_libraries(auto_calibration MPU6050Pi)
