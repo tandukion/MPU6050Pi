@@ -416,19 +416,19 @@ bool MPU6050Pi::WriteMemoryBlock(const uint8_t *data, uint16_t dataSize, uint8_t
         
         if (useProgMem) {
             // write the chunk of data as specified
-            // for (j = 0; j < chunkSize; j++) progBuffer[j] = pgm_read_byte(data + i + j);
+            for (j = 0; j < chunkSize; j++) progBuffer[j] = pgm_read_byte(data + i + j);
         } else {
             // write the chunk of data as specified
             progBuffer = (uint8_t *)data + i;
         }
 
-        // I2CPi::WriteBytes(fd_, MEM_R_W, chunkSize, progBuffer);
+        I2CPi::WriteBytes(fd_, MEM_R_W, progBuffer, chunkSize);
 
         // verify data if needed
         if (verify && verifyBuffer) {
             MPU6050Pi::SetMemoryBank(bank);
             MPU6050Pi::SetMemoryStartAddress(address);
-            // I2CPi::ReadBytes(fd_, MEM_R_W, chunkSize, verifyBuffer);
+            verifyBuffer = I2CPi::ReadBytes(fd_, MEM_R_W, chunkSize);
             if (memcmp(progBuffer, verifyBuffer, chunkSize) != 0) {
                 free(verifyBuffer);
                 if (useProgMem) free(progBuffer);
@@ -474,7 +474,7 @@ void MPU6050Pi::ReadMemoryBlock(uint8_t *data, uint16_t dataSize, uint8_t bank, 
         if (chunkSize > 256 - address) chunkSize = 256 - address;
 
         // read the chunk of data as specified
-        // data = I2CPi::ReadBytes(fd_, MEM_R_W, chunkSize);
+        data = I2CPi::ReadBytes(fd_, MEM_R_W, chunkSize);
         
         // increase byte index by [chunkSize]
         i += chunkSize;
@@ -564,9 +564,10 @@ uint8_t MPU6050Pi::DMPInitalize() {
 	MPU6050Pi::SetFullScaleGyroRange(FS_SEL_2000);
 
 	// Load DMP code into memory banks
-	std::cout << "Writing DMP code to MPU memory banks (" << DMP_CODE_SIZE << " bytes)... ";
-    // if (!MPU6050Pi::WriteProgMemoryBlock(dmp_memory_, DMP_CODE_SIZE))
-    //     return 1;
+	std::cout << "Writing DMP code to MPU memory banks (" << DMP_CODE_SIZE << " bytes)... " << std::endl;
+    // std::cout << dmpMemory;
+    if (!MPU6050Pi::WriteProgMemoryBlock(dmpMemory, DMP_CODE_SIZE))
+        return 1;
 	std::cout << "Writing DMP code successful." << std::endl;
 
     // Set the FIFO rate divisor

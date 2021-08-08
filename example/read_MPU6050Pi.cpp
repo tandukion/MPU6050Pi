@@ -74,11 +74,13 @@ int main(int argc, char **argv) {
 
     int16_t ax, ay, az, gx, gy, gz;
     float accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z;
+    int devStatus;
 
     std::cout << "----------------------------" << std::endl;
     std::cout << "1. Raw Sensor Data (int)" << std::endl;
     std::cout << "2. Float Sensor Data" << std::endl;
     std::cout << "3. Orientation (Complementary filter)" << std::endl;
+    std::cout << "4. DMP" << std::endl;
     std::cout << "----------------------------" << std::endl;
     std::cout << "Choose mode to choose: ";
     
@@ -130,6 +132,29 @@ int main(int argc, char **argv) {
                 std::cout << std::setw(10) << gyro_x << std::setw(10) << gyro_y << std::setw(10) << gyro_z;
                 std::cout << "\r";
             }
+            break;
+        
+        case 4:
+            std::cout << "Initalize DMP..\n";
+            devStatus = mpu.DMPInitalize();
+
+            // make sure it worked (returns 0 if so)
+            if (devStatus == 0) {
+                // turn on the DMP, now that it's ready
+                std::cout << "Enabling DMP...\n";
+                mpu.SetDMPEnabled(true);
+
+                // get expected DMP packet size for later comparison
+                // packetSize = mpu.dmpGetFIFOPacketSize();
+            } else {
+                // ERROR!
+                // 1 = initial memory load failed
+                // 2 = DMP configuration updates failed
+                // (if it's going to break, usually the code will be 1)
+                std::cout << "DMP Initialization failed.\n Error code: ";
+                std::cout << devStatus << "\n";
+            } 
+
             break;
 
     }
