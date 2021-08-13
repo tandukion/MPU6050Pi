@@ -26,15 +26,26 @@ uint8_t I2CPi::ReadBits(int fd, uint8_t reg_address, uint8_t bit_start, uint8_t 
 }
 
 uint8_t I2CPi::ReadByte(int fd, uint8_t reg_address){
-    return (uint8_t) wiringPiI2CReadReg8(fd, reg_address);
+    uint8_t b = (uint8_t) wiringPiI2CReadReg8(fd, reg_address);
+    // std::cout << "Read Address: " << (uint16_t)reg_address << " Value: ";
+    // std::cout << std::hex << std::setfill('0') << std::setw(2) << (uint16_t) b;
+    // std::cout << std::endl;
+    return b;
 }
 
 uint8_t* I2CPi::ReadBytes(int fd, uint8_t reg_address, uint8_t length){
     uint8_t *data = new uint8_t[length];
     int i;
     for (i=0;i<length;i++){
-        data[i] = (uint8_t)wiringPiI2CReadReg8(fd, reg_address+i);
+        data[i] = I2CPi::ReadByte(fd, reg_address);
     }
+    // Debug
+    // std::cout << "<I2CPi::ReadBytes> : ";
+    // uint8_t j;
+    // for (j=0; j < length; j++){
+    //     std::cout << std::hex << std::setfill('0') << std::setw(2) << (uint16_t) data[j] << " ";
+    // }
+    // std::cout << std::endl;
     return data;
 }
 
@@ -75,13 +86,24 @@ void I2CPi::WriteBits(int fd, uint8_t reg_address, uint8_t bit_start, uint8_t le
 }
 
 void I2CPi::WriteByte(int fd, uint8_t reg_address, uint8_t data) {
+    // std::cout << "Write Address: " << (uint16_t)reg_address << " Value: ";
+    // std::cout << std::hex << std::setfill('0') << std::setw(2) << (uint16_t) data;
+    // std::cout << std::endl;
     wiringPiI2CWriteReg8(fd, reg_address, data);
 }
 
 void I2CPi::WriteBytes(int fd, uint8_t reg_address, uint8_t *data, uint8_t length){
+    // Debug
+    // std::cout << "<I2CPi::WriteBytes>: ";
+    // uint8_t j;
+    // for (j=0; j < length; j++){
+    //     std::cout << std::hex << std::setfill('0') << std::setw(2) << (uint16_t) data[j] << " ";
+    // }
+    // std::cout << std::endl;
+
     int i;
     for (i=0;i<length;i++){
-        I2CPi::WriteByte(fd, reg_address+i, data[i]);
+        I2CPi::WriteByte(fd, reg_address, data[i]);
     }
 }
 

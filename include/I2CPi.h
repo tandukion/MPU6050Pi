@@ -2,6 +2,7 @@
 #define _I2CPI_H
 
 #include <iostream>
+#include <iomanip>
 #include <cstdint>
 #include <bitset>
 #include <math.h>

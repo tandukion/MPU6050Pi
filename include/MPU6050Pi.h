@@ -7,6 +7,7 @@
 #include <chrono>
 
 #include "I2CPi.h"
+#include "math_3d.h"
 
 #define G_FORCE 9.80665
 
@@ -249,15 +250,7 @@
 /**
  *  DMP define and constants
  */
-#define DMP_CODE_SIZE           1929    // dmpMemory[], 
-#define DMP_CONFIG_SIZE         192     // dmpConfig[]
-#define DMP_UPDATES_SIZE        47      // dmpUpdates[]
-
-#define DMP_MEMORY_BANKS        8
-#define DMP_MEMORY_BANK_SIZE    256
-#define DMP_MEMORY_CHUNK_SIZE   16
-
-#define DMP_FIFO_RATE_DIVISOR   0x01 
+#include "MPU6050Pi_MotionApps20.h"
 
 /**
  * Class for MPU6050 sensor reading using Raspberry Pi GPIO.
@@ -593,6 +586,32 @@ class MPU6050Pi {
          */
         void ResetDevice();
 
+        // ---------- FIFO_COUNT_* registers ----------
+        /**
+         * Return the number of bytes stored in the FIFO buffer
+         */
+        uint16_t GetFIFOCount();
+
+        // ---------- FIFO_R_W registers ----------
+        /** 
+         * Write byte to the FIFO buffer.
+         * 
+         * @param data {uint8_t} data to write
+         */
+        void SetFIFOByte(uint8_t data);
+
+        /** 
+         * Read one byte from the FIFO buffer.
+         */
+        uint8_t GetFIFOByte();
+        /** 
+         * Read bytes from the FIFO buffer.
+         * 
+         * @param data {uint8_t}    data read from the buffer
+         * @param length {uint8_t}  number of bytes to read
+         */
+        void GetFIFOBytes(uint8_t *data, uint8_t length);
+
         /** ============================================================
          *      DATA
          *  ============================================================
@@ -753,8 +772,86 @@ class MPU6050Pi {
          */
         /**
          * Initialize MPU6050 for DMP
+         * 
+         * @return {uint8_t} error codes. 0: no error
          */
         uint8_t DMPInitalize();
+        
+        /**
+         * Check if the DMP packet is already available on FIFO buffer based on
+         * the packet size set for DMP
+         * 
+         * @return {bool} True if DMP packet is available
+         */
+        bool DMPPacketAvailable();
+
+        /**
+         * Return the size setting for DMP packet
+         */
+        uint16_t DMPGetFIFOPacketSize();
+        
+        /**
+         * Parse and return quaternion data from one DMP packet
+         * 
+         * @param data {int32_t, int16_t, or Quaternion} quaternion data
+         * @param packet {uint8_t}  DMP packet
+         */
+        uint8_t DMPGetQuaternion(int32_t *data, const uint8_t* packet);
+        uint8_t DMPGetQuaternion(int16_t *data, const uint8_t* packet);
+        uint8_t DMPGetQuaternion(Quaternion *q, const uint8_t* packet);
+
+        /**
+         * Parse and return gyroscope data from one DMP packet
+         * 
+         * @param data {int32_t, int16_t, or Vector} gyroscope data
+         * @param packet {uint8_t}  DMP packet
+         */
+        uint8_t DMPGetGyro(int32_t *data, const uint8_t* packet);
+        uint8_t DMPGetGyro(int16_t *data, const uint8_t* packet);
+        uint8_t DMPGetGyro(Vector *v, const uint8_t* packet);
+
+        /**
+         * Parse and return accelerometer data from one DMP packet
+         * 
+         * @param data {int32_t, int16_t, or Vector} accelerometer data
+         * @param packet {uint8_t}  DMP packet
+         */
+        uint8_t DMPGetAccel(int32_t *data, const uint8_t* packet);
+        uint8_t DMPGetAccel(int16_t *data, const uint8_t* packet);
+        uint8_t DMPGetAccel(Vector *v, const uint8_t* packet);
+
+        /**
+         * Calculate euler angles from quaternion
+         * 
+         * @param data {float}      array of euler angles in radians
+         * @param q {Quaternion}    quaternion data
+         */
+        uint8_t DMPGetEuler(float *data, Quaternion *q);
+
+        /**
+         * Calculate gravity from DMP packet.
+         * The quaternion data will be parsed from the DMP packet.
+         * 
+         * @param data {int16_t}    array of gravity in X-Y-Z axis
+         * @param packet {uint8_t}  DMP packet
+         */
+        uint8_t DMPGetGravity(int16_t *data, const uint8_t* packet);
+        /**
+         * Calculate euler angles from quaternion data
+         * 
+         * @param data {Vector}    vector of gravity
+         * @param q {Quaternion}   quaternion data
+         */
+        uint8_t DMPGetGravity(Vector *v, Quaternion *q);
+
+        /**
+         * Calculate yaw, pitch, and roll from quaternion data and vector of gravity
+         * 
+         * @param data {float}      array of {yaw, pitch, roll}
+         * @param q {Quaternion}    quaternion data
+         * @param gravity {Vector}  vector of gravity
+         */
+        uint8_t DMPGetYawPitchRoll(float *data, Quaternion *q, Vector *gravity);
 
 };
 
