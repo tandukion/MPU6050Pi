@@ -226,7 +226,7 @@ int main(int argc, char **argv) {
                         pitch = ypr[1] * 180/M_PI;
                         roll = ypr[2] * 180/M_PI;
 
-                        std::cout << std::setw(12) << ypr[0] << std::setw(12) << ypr[1] << std::setw(12) << ypr[2];
+                        std::cout << std::setw(12) << yaw << std::setw(12) << pitch << std::setw(12) << roll;
                         std::cout << "\r";
                     }
                     else if (mode==5) {
