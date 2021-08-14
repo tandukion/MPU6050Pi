@@ -250,7 +250,26 @@
 /**
  *  DMP define and constants
  */
-#include "MPU6050Pi_MotionApps20.h"
+#define DMP_CODE_SIZE           1929    // dmpMemory[]
+#define DMP_CONFIG_SIZE         192     // dmpConfig[]
+#define DMP_UPDATES_SIZE        47      // dmpUpdates[]
+
+#define DMP_PACKET_SIZE         42
+
+
+#define DMP_MEMORY_BANKS        8
+#define DMP_MEMORY_BANK_SIZE    256
+#define DMP_MEMORY_CHUNK_SIZE   16
+
+#define DMP_FIFO_RATE_DIVISOR   0x01 
+
+/**
+ * Static class for MPU6050 Motion Apps
+ */ 
+class DMP {
+    public:
+        static const unsigned char memory[];
+};
 
 /**
  * Class for MPU6050 sensor reading using Raspberry Pi GPIO.

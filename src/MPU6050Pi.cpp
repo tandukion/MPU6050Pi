@@ -761,7 +761,7 @@ uint8_t MPU6050Pi::DMPInitalize() {
 	MPU6050Pi::SetDMPEnabled(false);
 
 	// std::cout << "Setting up internal 42-byte (default) DMP packet buffer..." << std::endl;
-	dmp_packet_size_ = 42;
+	dmp_packet_size_ = DMP_PACKET_SIZE;
 
 	// std::cout << "Resetting FIFO and clearing INT status one last time..." << std::endl;
 	MPU6050Pi::ResetFIFO();
