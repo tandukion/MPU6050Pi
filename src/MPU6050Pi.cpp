@@ -681,53 +681,55 @@ uint8_t MPU6050Pi::DMPInitalize() {
     // Check Hardware Revision
 	MPU6050Pi::SetMemoryBank(0x10, true, true);
 	MPU6050Pi::SetMemoryStartAddress(0x06);
-	std::cout << "Checking hardware revision... ";
-	std::cout << "Revision @ user[16][6] = " << (int)MPU6050Pi::ReadMemoryByte() << std::endl;
+	// std::cout << "Checking hardware revision... ";
+	// std::cout << "Revision @ user[16][6] = " << (int)MPU6050Pi::ReadMemoryByte() << std::endl;
 	MPU6050Pi::SetMemoryBank(0, false, false);
 
 	// check OTP bank valid
-	std::cout << "Reading OTP bank valid flag... ";
-	std::cout << "OTP bank is ";
+	// std::cout << "Reading OTP bank valid flag... ";
+	// std::cout << "OTP bank is ";
     if (MPU6050Pi::GetOTPBankValid())
-        std::cout << "valid." << std::endl;
+        // std::cout << "valid." << std::endl;
+        ;
     else
-        std::cout << "invalid." << std::endl;
+        // std::cout << "invalid." << std::endl;
+        return 1;
 
 	// Set Slave
-	std::cout << "Setting slave 0 address to 0x7F..." << std::endl;
+	// std::cout << "Setting slave 0 address to 0x7F..." << std::endl;
 	MPU6050Pi::SetSlaveAddress(0, 0x7F);
-	std::cout << "Disabling I2C Master mode..." << std::endl;
+	// std::cout << "Disabling I2C Master mode..." << std::endl;
 	MPU6050Pi::SetI2CMasterModeEnabled(false);
-	std::cout << "Setting slave 0 address to 0x68..." << std::endl;
+	// std::cout << "Setting slave 0 address to 0x68..." << std::endl;
 	MPU6050Pi::SetSlaveAddress(0, 0x68);
-	std::cout << "Resetting I2C Master control..." << std::endl;
+	// std::cout << "Resetting I2C Master control..." << std::endl;
 	MPU6050Pi::ResetI2CMaster();
     std::this_thread::sleep_for (std::chrono::milliseconds(20));
-	std::cout << "Setting clock source to Z Gyro..." << std::endl;
+	// std::cout << "Setting clock source to Z Gyro..." << std::endl;
 	MPU6050Pi::SetClockSource(CLOCK_PLL_ZGYRO);
 
-	std::cout << "Setting DMP and FIFO_OFLOW interrupts enabled..." << std::endl;
+	// std::cout << "Setting DMP and FIFO_OFLOW interrupts enabled..." << std::endl;
 	MPU6050Pi::SetIntEnabled(1<<FIFO_OFLOW_INT_BIT | 1<<DMP_INT_BIT);
 
-	std::cout << "Setting sample rate to 200Hz..." << std::endl;
+	// std::cout << "Setting sample rate to 200Hz..." << std::endl;
 	MPU6050Pi::SetSampleRateDivider(4); // 1khz / (1 + 4) = 200 Hz
 
 
-	std::cout << "Setting external frame sync to TEMP_OUT_L[0]..." << std::endl;
+	// std::cout << "Setting external frame sync to TEMP_OUT_L[0]..." << std::endl;
 	MPU6050Pi::SetExternalFrameSync(EXT_SYNC_TEMP_OUT_L);
 
-	std::cout << "Setting DLPF bandwidth to 42Hz..." << std::endl;
+	// std::cout << "Setting DLPF bandwidth to 42Hz..." << std::endl;
 	MPU6050Pi::SetDLPFMode(DLPF_BW_42);
 
-	std::cout << "Setting gyro sensitivity to +/- 2000 deg/sec..." << std::endl;
+	// std::cout << "Setting gyro sensitivity to +/- 2000 deg/sec..." << std::endl;
 	MPU6050Pi::SetFullScaleGyroRange(FS_SEL_2000);
 
 	// Load DMP code into memory banks
-	std::cout << "Writing DMP code to MPU memory banks (" << DMP_CODE_SIZE << " bytes)... " << std::endl;
+	// std::cout << "Writing DMP code to MPU memory banks (" << DMP_CODE_SIZE << " bytes)... " << std::endl;
     // std::cout << dmpMemory;
     if (!MPU6050Pi::WriteProgMemoryBlock(DMP::memory, DMP_CODE_SIZE))
         return 1;
-	std::cout << "Writing DMP code successful." << std::endl;
+	// std::cout << "Writing DMP code successful." << std::endl;
 
     // Set the FIFO rate divisor
     unsigned char dmpUpdate[] = {0x00, DMP_FIFO_RATE_DIVISOR};
@@ -738,30 +740,30 @@ uint8_t MPU6050Pi::DMPInitalize() {
 	MPU6050Pi::SetDMPConfig1(0x03); //MSB
 	MPU6050Pi::SetDMPConfig2(0x00); //LSB
 
-	std::cout << "Clearing OTP Bank flag..." << std::endl;
+	// std::cout << "Clearing OTP Bank flag..." << std::endl;
 	MPU6050Pi::SetOTPBankValid(false);
 
     // Setting motion detection threshold and duration
-	std::cout << "Setting motion detection     : threshold =   2, duration = 80..." << std::endl;
+	// std::cout << "Setting motion detection     : threshold =   2, duration = 80..." << std::endl;
 	MPU6050Pi::SetMotionDetectionThreshold(2);
 	MPU6050Pi::SetMotionDetectionDuration(80);
 
 	// Setting Zero motion detection threshold and duration
-	std::cout << "Setting zero-motion detection: threshold = 156, duration =  0..." << std::endl;
+	// std::cout << "Setting zero-motion detection: threshold = 156, duration =  0..." << std::endl;
 	MPU6050Pi::SetZeroMotionDetectionThreshold(156);
 	MPU6050Pi::SetZeroMotionDetectionDuration(0);
 
-	std::cout << "Enabling FIFO..." << std::endl;
+	// std::cout << "Enabling FIFO..." << std::endl;
 	MPU6050Pi::SetFIFOEnabled(true);
 
-	std::cout << "Resetting and disabling DMP..." << std::endl;
+	// std::cout << "Resetting and disabling DMP..." << std::endl;
 	MPU6050Pi::ResetDMP();
 	MPU6050Pi::SetDMPEnabled(false);
 
-	std::cout << "Setting up internal 42-byte (default) DMP packet buffer..." << std::endl;
+	// std::cout << "Setting up internal 42-byte (default) DMP packet buffer..." << std::endl;
 	dmp_packet_size_ = 42;
 
-	std::cout << "Resetting FIFO and clearing INT status one last time..." << std::endl;
+	// std::cout << "Resetting FIFO and clearing INT status one last time..." << std::endl;
 	MPU6050Pi::ResetFIFO();
 	MPU6050Pi::GetIntStatus();
 
