@@ -167,6 +167,14 @@
 #define EXT_SYNC_SET_START          3
 #define EXT_SYNC_SET_LENGTH         3            
 
+// GYRO_CONFIG
+#define FS_SEL_START                3
+#define FS_SEL_LENGTH               2
+
+// ACCEL_CONFIG
+#define AFS_SEL_START               3
+#define AFS_SEL_LENGTH              2
+
 // INT_ENABLE
 #define DATA_RDY_INT_BIT            0
 #define DMP_INT_BIT                 1
@@ -204,15 +212,41 @@
 /**
  * Parameter Settings
  */
+/* 
+ * Gyroscope sensitivity 
+ * | FS_SEL  | Full Scale Range  |   LSB Sensitivity   |
+ * |    0    |       250 deg/s   |     131 LSB/deg/s   |
+ * |    1    |       500 deg/s   |    65.5 LSB/deg/s   |
+ * |    2    |      1000 deg/s   |    32.8 LSB/deg/s   |
+ * |    3    |      2000 deg/s   |    16.4 LSB/deg/s   |
+ */
 #define FS_SEL_250              0x00
 #define FS_SEL_500              0x01
 #define FS_SEL_1000             0x02
 #define FS_SEL_2000             0x03
 
+#define GYRO_LSB_250            131.0
+#define GYRO_LSB_500            65.5
+#define GYRO_LSB_1000           32.8
+#define GYRO_LSB_2000           16.4
+
+/* 
+ * Accelerometer sensitivity
+ * | AFS_SEL  | Full Scale Range |   LSB Sensitivity  |
+ * |    0     |      2 g         |     16384 LSB/g    |
+ * |    1     |      4 g         |      8192 LSB/g    |
+ * |    2     |      8 g         |      4096 LSB/g    |
+ * |    3     |     16 g         |      2048 LSB/g    |
+ */
 #define AFS_SEL_2               0x00
 #define AFS_SEL_4               0x01
 #define AFS_SEL_8               0x02
 #define AFS_SEL_16              0x03
+
+#define ACCEL_LSB_2             16384.0
+#define ACCEL_LSB_4             8192.0
+#define ACCEL_LSB_8             4096.0
+#define ACCEL_LSB_16            2048.0
 
 #define EXT_SYNC_DISABLED       0x00
 #define EXT_SYNC_TEMP_OUT_L     0x01
@@ -255,7 +289,18 @@
 #define DMP_UPDATES_SIZE        47      // dmpUpdates[]
 
 #define DMP_PACKET_SIZE         42
-
+/**
+ * Default MotionApps v2.0 42-byte FIFO packet structure
+ *
+ * |    QUAT W     |    QUAT X     |    QUAT Y     |     QUAT Z    |
+ * | 0   1   2   3 | 4   5   6   7 | 8   9  10  11 |12  13  14  15 | 
+ *
+ * |    GYRO X     |    GYRO Y     |    GYRO Z     |
+ * |16  17  18  19 |20  21  22  23 |24  25  26  27 | 
+ * 
+ * |     ACC X     |     ACC Y     |     ACC Z     |       |
+ * |28  29  30  31 |32  33  34  35 |36  37  38  39 |40  41 | 
+ */
 
 #define DMP_MEMORY_BANKS        8
 #define DMP_MEMORY_BANK_SIZE    256

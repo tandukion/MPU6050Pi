@@ -106,23 +106,19 @@ void MPU6050Pi::SetDLPFMode(uint8_t mode) {
 
 // ---------- GYRO_CONFIG registers ----------
 void MPU6050Pi::SetFullScaleGyroRange(uint8_t range) {
-    uint8_t gyro_config_val;
+    uint8_t gyro_config_val = range << FS_SEL_START;
     switch (range) {
-        case 0:         // 250 deg/s full scale range
-            gyro_sensitivity_ = 131.0;
-            gyro_config_val = 0x00;
+        case FS_SEL_250:         // 250 deg/s full scale range
+            gyro_sensitivity_ = GYRO_LSB_250;
             break;
-        case 1:         // 500 deg/s full scale range
-            gyro_sensitivity_ = 65.5;
-            gyro_config_val = 0x08;
+        case FS_SEL_500:         // 500 deg/s full scale range
+            gyro_sensitivity_ = GYRO_LSB_500;
             break;
-        case 2:         // 1000 deg/s full scale range
-            gyro_sensitivity_ = 32.8;
-            gyro_config_val = 0x10;
+        case FS_SEL_1000:         // 1000 deg/s full scale range
+            gyro_sensitivity_ = GYRO_LSB_1000;
             break;
-        case 3:         // 2000 deg/s full scale range
-            gyro_sensitivity_ = 16.4;
-            gyro_config_val = 0x18;
+        case FS_SEL_2000:         // 2000 deg/s full scale range
+            gyro_sensitivity_ = GYRO_LSB_2000;
             break;
     }
     I2CPi::WriteByte(fd_, GYRO_CONFIG, gyro_config_val);
@@ -134,23 +130,19 @@ float MPU6050Pi::GetGyroSensitivity() {
 
 // ---------- ACCEL_CONFIG registers ----------
 void MPU6050Pi::SetFullScaleAccelRange(uint8_t range) {
-    uint8_t accel_config_val;
+    uint8_t accel_config_val = range << AFS_SEL_START;
     switch (range) {
-        case 0x00:      // 250 deg/s full scale range
-            accel_sensitivity_ = 16384.0;
-            accel_config_val = 0x00;
+        case AFS_SEL_2:      // 2g full scale range
+            accel_sensitivity_ = ACCEL_LSB_2;
             break;
-        case 0x01:      // 500 deg/s full scale range
-            accel_sensitivity_ = 8192.0;
-            accel_config_val = 0x08;
+        case AFS_SEL_4:      // 4g full scale range
+            accel_sensitivity_ = ACCEL_LSB_4;
             break;
-        case 0x02:      // 1000 deg/s full scale range
-            accel_sensitivity_ = 4096.0;
-            accel_config_val = 0x10;
+        case AFS_SEL_8:      // 8g full scale range
+            accel_sensitivity_ = ACCEL_LSB_8;
             break;
-        case 0x03:      // 2000 deg/s full scale range
-            accel_sensitivity_ = 2048.0;
-            accel_config_val = 0x18;
+        case AFS_SEL_16:      // 16g full scale range
+            accel_sensitivity_ = ACCEL_LSB_16;
             break;
     }
     I2CPi::WriteByte(fd_, ACCEL_CONFIG, accel_config_val);
