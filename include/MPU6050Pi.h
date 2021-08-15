@@ -911,7 +911,7 @@ class MPU6050Pi {
         /**
          * Calculate yaw, pitch, and roll from quaternion data and vector of gravity
          * 
-         * @param data {float}      array of {yaw, pitch, roll}
+         * @param data {float}      array of {yaw, pitch, roll} in radians
          * @param q {Quaternion}    quaternion data
          * @param gravity {Vector}  vector of gravity
          */
