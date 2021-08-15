@@ -1,3 +1,7 @@
+/**
+ * @author  Dwindra Sulistyoutomo
+ */
+
 #include "math_3d.h"
 
 // Quaternion

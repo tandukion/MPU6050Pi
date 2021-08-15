@@ -1,8 +1,11 @@
+/**
+ * @author  Dwindra Sulistyoutomo
+ */
+
 #include <iostream>	
 #include <iomanip>
 #include <fstream>
-#include <string.h>
-#include <chrono>
+#include <chrono>       // Required to get time
 
 #include <MPU6050Pi.h>
 

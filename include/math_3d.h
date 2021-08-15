@@ -1,3 +1,7 @@
+/**
+ * @author  Dwindra Sulistyoutomo
+ */
+
 #ifndef _MATH_3D_H
 #define _MATH_3D_H
 
