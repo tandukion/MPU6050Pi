@@ -1,3 +1,7 @@
+/**
+ * @author  Dwindra Sulistyoutomo
+ */
+
 #include "I2CPi.h"
 
 int I2CPi::Setup(uint8_t dev_address) {
@@ -18,7 +22,10 @@ uint8_t I2CPi::ReadBits(int fd, uint8_t reg_address, uint8_t bit_start, uint8_t 
     uint8_t b = I2CPi::ReadByte(fd, reg_address);
     // Create masking from bit_start and length
     // e.g: (3,4) -> mask = 0b01111000
-    uint8_t mask = (uint8_t)pow(2,length) - 1 << bit_start;
+    uint8_t mask=0;
+    uint8_t i;
+    for (i=0; i<length; i++) mask += 1 << i;
+    mask = mask << bit_start;
 
     // std::cout << "Byte: " << (int)b << std::endl;
     // std::cout << "Bit(" << (int)bit_start << "," << (int)length << "): " << (int)((b & mask) >> bit_start) << std::endl;
@@ -72,7 +79,11 @@ void I2CPi::WriteBits(int fd, uint8_t reg_address, uint8_t bit_start, uint8_t le
     // std::cout << "Byte: " << std::bitset<8>(b) << std::endl;
 
     // Create masking based data, bit_start, and length
-    uint8_t mask = (uint8_t)pow(2,length) - 1 << bit_start;
+    // e.g: (3,4) -> mask = 0b01111000
+    uint8_t mask=0;
+    uint8_t i;
+    for (i=0; i<length; i++) mask += 1 << i;
+    mask = mask << bit_start;
     // std::cout << "Mask: " << std::bitset<8>(mask) << std::endl;
 
     // Mask current data

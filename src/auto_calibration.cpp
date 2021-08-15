@@ -1,10 +1,12 @@
+/**
+ * @author  Dwindra Sulistyoutomo
+ */
+
 #include <iostream>
 #include <fstream>
-#include <thread>
-#include <chrono>
-#include <algorithm>
-#include <vector>
-#include <sys/stat.h>
+#include <thread>       // Required to sleep
+#include <chrono>       // Required to sleep
+#include <sys/stat.h>   // Required to check file existence
 
 #include <MPU6050Pi.h>
 

@@ -1,13 +1,19 @@
+/**
+ * @author  Dwindra Sulistyoutomo
+ */
+
 #ifndef _I2CPI_H
 #define _I2CPI_H
 
-#include <iostream>
-#include <iomanip>
 #include <cstdint>
-#include <bitset>
-#include <math.h>
-#include <wiringPi.h>
 #include <wiringPiI2C.h>
+
+// DEBUG libraries
+// You need to uncomment some of the includes below to print for debugging.
+// Commented in order 
+// #include <iostream>     // main print function std::cout
+// #include <iomanip>      // to print hex in two-digit. e.g 0x0A
+// #include <bitset>       // to print values in binary
 
 class I2CPi {
     public:

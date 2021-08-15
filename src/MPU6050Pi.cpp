@@ -1,3 +1,7 @@
+/**
+ * @author  Dwindra Sulistyoutomo
+ */
+
 #include "MPU6050Pi.h"
 
 /** ============================================================
@@ -6,10 +10,10 @@
  */
 MPU6050Pi::MPU6050Pi() {
     // Set default the I2C address of the device
-    I2C_address_ = 0x68;
+    I2C_address_ = MPU6050_ADDRESS;
 
     // Initialize the I2C device file handler
-    fd_ = I2CPi::Setup(0x68);
+    fd_ = I2CPi::Setup(MPU6050_ADDRESS);
 
     // Set Clock Source. Better to use X gyro as reference
     MPU6050Pi::SetClockSource(CLOCK_PLL_XGYRO);
@@ -40,10 +44,10 @@ MPU6050Pi::MPU6050Pi() {
 
 MPU6050Pi::MPU6050Pi(int16_t *offsets) {
     // Set default the I2C address of the device
-    I2C_address_ = 0x68;
+    I2C_address_ = MPU6050_ADDRESS;
 
     // Initialize the I2C device file handler
-    fd_ = I2CPi::Setup(0x68);
+    fd_ = I2CPi::Setup(MPU6050_ADDRESS);
 
     // Set Clock Source. Better to use X gyro as reference
     MPU6050Pi::SetClockSource(CLOCK_PLL_XGYRO);
@@ -106,23 +110,19 @@ void MPU6050Pi::SetDLPFMode(uint8_t mode) {
 
 // ---------- GYRO_CONFIG registers ----------
 void MPU6050Pi::SetFullScaleGyroRange(uint8_t range) {
-    uint8_t gyro_config_val;
+    uint8_t gyro_config_val = range << FS_SEL_START;
     switch (range) {
-        case 0:         // 250 deg/s full scale range
-            gyro_sensitivity_ = 131.0;
-            gyro_config_val = 0x00;
+        case FS_SEL_250:         // 250 deg/s full scale range
+            gyro_sensitivity_ = GYRO_LSB_250;
             break;
-        case 1:         // 500 deg/s full scale range
-            gyro_sensitivity_ = 65.5;
-            gyro_config_val = 0x08;
+        case FS_SEL_500:         // 500 deg/s full scale range
+            gyro_sensitivity_ = GYRO_LSB_500;
             break;
-        case 2:         // 1000 deg/s full scale range
-            gyro_sensitivity_ = 32.8;
-            gyro_config_val = 0x10;
+        case FS_SEL_1000:         // 1000 deg/s full scale range
+            gyro_sensitivity_ = GYRO_LSB_1000;
             break;
-        case 3:         // 2000 deg/s full scale range
-            gyro_sensitivity_ = 16.4;
-            gyro_config_val = 0x18;
+        case FS_SEL_2000:         // 2000 deg/s full scale range
+            gyro_sensitivity_ = GYRO_LSB_2000;
             break;
     }
     I2CPi::WriteByte(fd_, GYRO_CONFIG, gyro_config_val);
@@ -134,23 +134,19 @@ float MPU6050Pi::GetGyroSensitivity() {
 
 // ---------- ACCEL_CONFIG registers ----------
 void MPU6050Pi::SetFullScaleAccelRange(uint8_t range) {
-    uint8_t accel_config_val;
+    uint8_t accel_config_val = range << AFS_SEL_START;
     switch (range) {
-        case 0x00:      // 250 deg/s full scale range
-            accel_sensitivity_ = 16384.0;
-            accel_config_val = 0x00;
+        case AFS_SEL_2:      // 2g full scale range
+            accel_sensitivity_ = ACCEL_LSB_2;
             break;
-        case 0x01:      // 500 deg/s full scale range
-            accel_sensitivity_ = 8192.0;
-            accel_config_val = 0x08;
+        case AFS_SEL_4:      // 4g full scale range
+            accel_sensitivity_ = ACCEL_LSB_4;
             break;
-        case 0x02:      // 1000 deg/s full scale range
-            accel_sensitivity_ = 4096.0;
-            accel_config_val = 0x10;
+        case AFS_SEL_8:      // 8g full scale range
+            accel_sensitivity_ = ACCEL_LSB_8;
             break;
-        case 0x03:      // 2000 deg/s full scale range
-            accel_sensitivity_ = 2048.0;
-            accel_config_val = 0x18;
+        case AFS_SEL_16:      // 16g full scale range
+            accel_sensitivity_ = ACCEL_LSB_16;
             break;
     }
     I2CPi::WriteByte(fd_, ACCEL_CONFIG, accel_config_val);
@@ -418,7 +414,7 @@ uint8_t MPU6050Pi::ReadMemoryByte(){
     return I2CPi::ReadByte(fd_, MEM_R_W);
 }
 
-bool MPU6050Pi::WriteMemoryBlock(const uint8_t *data, uint16_t dataSize, uint8_t bank, uint8_t address, bool verify, bool useProgMem){
+bool MPU6050Pi::WriteMemoryBlock(const uint8_t *data, uint16_t data_size, uint8_t bank, uint8_t address, bool verify, bool use_progmem){
     MPU6050Pi::SetMemoryBank(bank);
     MPU6050Pi::SetMemoryStartAddress(address);
     uint8_t chunkSize;
@@ -427,13 +423,13 @@ bool MPU6050Pi::WriteMemoryBlock(const uint8_t *data, uint16_t dataSize, uint8_t
     uint16_t i;
     uint8_t j;
     if (verify) verifyBuffer = (uint8_t *)malloc(DMP_MEMORY_CHUNK_SIZE);
-    // if (useProgMem) progBuffer = (uint8_t *)malloc(DMP_MEMORY_CHUNK_SIZE);
-    for (i = 0; i < dataSize;) {
+    // if (use_progmem) progBuffer = (uint8_t *)malloc(DMP_MEMORY_CHUNK_SIZE);
+    for (i = 0; i < data_size;) {
         // determine correct chunk size according to bank position and data size
         chunkSize = DMP_MEMORY_CHUNK_SIZE;
 
         // make sure we don't go past the data size
-        if (i + chunkSize > dataSize) chunkSize = dataSize - i;
+        if (i + chunkSize > data_size) chunkSize = data_size - i;
 
         // make sure this chunk doesn't go past the bank boundary (256 bytes)
         if (chunkSize > 256 - address) chunkSize = 256 - address;
@@ -470,7 +466,7 @@ bool MPU6050Pi::WriteMemoryBlock(const uint8_t *data, uint16_t dataSize, uint8_t
         address += chunkSize;
 
         // if we aren't done, update bank (if necessary) and address
-        if (i < dataSize) {
+        if (i < data_size) {
             if (address == 0) bank++;
             MPU6050Pi::SetMemoryBank(bank);
             MPU6050Pi::SetMemoryStartAddress(address);
@@ -481,20 +477,20 @@ bool MPU6050Pi::WriteMemoryBlock(const uint8_t *data, uint16_t dataSize, uint8_t
 
 }
 
-bool MPU6050Pi::WriteProgMemoryBlock(const uint8_t *data, uint16_t dataSize, uint8_t bank, uint8_t address, bool verify){
-    return MPU6050Pi::WriteMemoryBlock(data, dataSize, bank, address, verify, true);
+bool MPU6050Pi::WriteProgMemoryBlock(const uint8_t *data, uint16_t data_size, uint8_t bank, uint8_t address, bool verify){
+    return MPU6050Pi::WriteMemoryBlock(data, data_size, bank, address, verify, true);
 }
 
-void MPU6050Pi::ReadMemoryBlock(uint8_t *data, uint16_t dataSize, uint8_t bank, uint8_t address){
+void MPU6050Pi::ReadMemoryBlock(uint8_t *data, uint16_t data_size, uint8_t bank, uint8_t address){
     MPU6050Pi::SetMemoryBank(bank);
     MPU6050Pi::SetMemoryStartAddress(address);
     uint8_t chunkSize;
-    for (uint16_t i = 0; i < dataSize;) {
+    for (uint16_t i = 0; i < data_size;) {
         // determine correct chunk size according to bank position and data size
         chunkSize = DMP_MEMORY_CHUNK_SIZE;
 
         // make sure we don't go past the data size
-        if (i + chunkSize > dataSize) chunkSize = dataSize - i;
+        if (i + chunkSize > data_size) chunkSize = data_size - i;
 
         // make sure this chunk doesn't go past the bank boundary (256 bytes)
         if (chunkSize > 256 - address) chunkSize = 256 - address;
@@ -509,7 +505,7 @@ void MPU6050Pi::ReadMemoryBlock(uint8_t *data, uint16_t dataSize, uint8_t bank, 
         address += chunkSize;
 
         // if we aren't done, update bank (if necessary) and address
-        if (i < dataSize) {
+        if (i < data_size) {
             if (address == 0) bank++;
             MPU6050Pi::SetMemoryBank(bank);
             MPU6050Pi::SetMemoryStartAddress(address);
@@ -681,53 +677,55 @@ uint8_t MPU6050Pi::DMPInitalize() {
     // Check Hardware Revision
 	MPU6050Pi::SetMemoryBank(0x10, true, true);
 	MPU6050Pi::SetMemoryStartAddress(0x06);
-	std::cout << "Checking hardware revision... ";
-	std::cout << "Revision @ user[16][6] = " << (int)MPU6050Pi::ReadMemoryByte() << std::endl;
+	// std::cout << "Checking hardware revision... ";
+	// std::cout << "Revision @ user[16][6] = " << (int)MPU6050Pi::ReadMemoryByte() << std::endl;
 	MPU6050Pi::SetMemoryBank(0, false, false);
 
 	// check OTP bank valid
-	std::cout << "Reading OTP bank valid flag... ";
-	std::cout << "OTP bank is ";
+	// std::cout << "Reading OTP bank valid flag... ";
+	// std::cout << "OTP bank is ";
     if (MPU6050Pi::GetOTPBankValid())
-        std::cout << "valid." << std::endl;
+        // std::cout << "valid." << std::endl;
+        ;
     else
-        std::cout << "invalid." << std::endl;
+        // std::cout << "invalid." << std::endl;
+        return 1;
 
 	// Set Slave
-	std::cout << "Setting slave 0 address to 0x7F..." << std::endl;
+	// std::cout << "Setting slave 0 address to 0x7F..." << std::endl;
 	MPU6050Pi::SetSlaveAddress(0, 0x7F);
-	std::cout << "Disabling I2C Master mode..." << std::endl;
+	// std::cout << "Disabling I2C Master mode..." << std::endl;
 	MPU6050Pi::SetI2CMasterModeEnabled(false);
-	std::cout << "Setting slave 0 address to 0x68..." << std::endl;
-	MPU6050Pi::SetSlaveAddress(0, 0x68);
-	std::cout << "Resetting I2C Master control..." << std::endl;
+	// std::cout << "Setting slave 0 address to 0x68..." << std::endl;
+	MPU6050Pi::SetSlaveAddress(0, MPU6050_ADDRESS);
+	// std::cout << "Resetting I2C Master control..." << std::endl;
 	MPU6050Pi::ResetI2CMaster();
     std::this_thread::sleep_for (std::chrono::milliseconds(20));
-	std::cout << "Setting clock source to Z Gyro..." << std::endl;
+	// std::cout << "Setting clock source to Z Gyro..." << std::endl;
 	MPU6050Pi::SetClockSource(CLOCK_PLL_ZGYRO);
 
-	std::cout << "Setting DMP and FIFO_OFLOW interrupts enabled..." << std::endl;
+	// std::cout << "Setting DMP and FIFO_OFLOW interrupts enabled..." << std::endl;
 	MPU6050Pi::SetIntEnabled(1<<FIFO_OFLOW_INT_BIT | 1<<DMP_INT_BIT);
 
-	std::cout << "Setting sample rate to 200Hz..." << std::endl;
+	// std::cout << "Setting sample rate to 200Hz..." << std::endl;
 	MPU6050Pi::SetSampleRateDivider(4); // 1khz / (1 + 4) = 200 Hz
 
 
-	std::cout << "Setting external frame sync to TEMP_OUT_L[0]..." << std::endl;
+	// std::cout << "Setting external frame sync to TEMP_OUT_L[0]..." << std::endl;
 	MPU6050Pi::SetExternalFrameSync(EXT_SYNC_TEMP_OUT_L);
 
-	std::cout << "Setting DLPF bandwidth to 42Hz..." << std::endl;
+	// std::cout << "Setting DLPF bandwidth to 42Hz..." << std::endl;
 	MPU6050Pi::SetDLPFMode(DLPF_BW_42);
 
-	std::cout << "Setting gyro sensitivity to +/- 2000 deg/sec..." << std::endl;
+	// std::cout << "Setting gyro sensitivity to +/- 2000 deg/sec..." << std::endl;
 	MPU6050Pi::SetFullScaleGyroRange(FS_SEL_2000);
 
 	// Load DMP code into memory banks
-	std::cout << "Writing DMP code to MPU memory banks (" << DMP_CODE_SIZE << " bytes)... " << std::endl;
+	// std::cout << "Writing DMP code to MPU memory banks (" << DMP_CODE_SIZE << " bytes)... " << std::endl;
     // std::cout << dmpMemory;
     if (!MPU6050Pi::WriteProgMemoryBlock(DMP::memory, DMP_CODE_SIZE))
         return 1;
-	std::cout << "Writing DMP code successful." << std::endl;
+	// std::cout << "Writing DMP code successful." << std::endl;
 
     // Set the FIFO rate divisor
     unsigned char dmpUpdate[] = {0x00, DMP_FIFO_RATE_DIVISOR};
@@ -738,30 +736,30 @@ uint8_t MPU6050Pi::DMPInitalize() {
 	MPU6050Pi::SetDMPConfig1(0x03); //MSB
 	MPU6050Pi::SetDMPConfig2(0x00); //LSB
 
-	std::cout << "Clearing OTP Bank flag..." << std::endl;
+	// std::cout << "Clearing OTP Bank flag..." << std::endl;
 	MPU6050Pi::SetOTPBankValid(false);
 
     // Setting motion detection threshold and duration
-	std::cout << "Setting motion detection     : threshold =   2, duration = 80..." << std::endl;
+	// std::cout << "Setting motion detection     : threshold =   2, duration = 80..." << std::endl;
 	MPU6050Pi::SetMotionDetectionThreshold(2);
 	MPU6050Pi::SetMotionDetectionDuration(80);
 
 	// Setting Zero motion detection threshold and duration
-	std::cout << "Setting zero-motion detection: threshold = 156, duration =  0..." << std::endl;
+	// std::cout << "Setting zero-motion detection: threshold = 156, duration =  0..." << std::endl;
 	MPU6050Pi::SetZeroMotionDetectionThreshold(156);
 	MPU6050Pi::SetZeroMotionDetectionDuration(0);
 
-	std::cout << "Enabling FIFO..." << std::endl;
+	// std::cout << "Enabling FIFO..." << std::endl;
 	MPU6050Pi::SetFIFOEnabled(true);
 
-	std::cout << "Resetting and disabling DMP..." << std::endl;
+	// std::cout << "Resetting and disabling DMP..." << std::endl;
 	MPU6050Pi::ResetDMP();
 	MPU6050Pi::SetDMPEnabled(false);
 
-	std::cout << "Setting up internal 42-byte (default) DMP packet buffer..." << std::endl;
-	dmp_packet_size_ = 42;
+	// std::cout << "Setting up internal 42-byte (default) DMP packet buffer..." << std::endl;
+	dmp_packet_size_ = DMP_PACKET_SIZE;
 
-	std::cout << "Resetting FIFO and clearing INT status one last time..." << std::endl;
+	// std::cout << "Resetting FIFO and clearing INT status one last time..." << std::endl;
 	MPU6050Pi::ResetFIFO();
 	MPU6050Pi::GetIntStatus();
 
