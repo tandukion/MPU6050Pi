@@ -2,9 +2,15 @@
 #include <iomanip>
 #include <fstream>
 #include <string.h>
-
+#include <chrono>
 
 #include <MPU6050Pi.h>
+
+#define COMPLEMENTARY_FILTER_CONSTANT   0.98
+
+float ComplementaryFilter(float angle, float angle_comp) {
+    return COMPLEMENTARY_FILTER_CONSTANT * angle + (1- COMPLEMENTARY_FILTER_CONSTANT) * angle_comp;
+}
 
 int16_t* GetCalibrationData (char *filename) {
     int16_t *offsets = new int16_t[6];
@@ -85,8 +91,12 @@ int main(int argc, char **argv) {
     Vector gravity;
     float euler[3];
     float ypr[3]; // yaw pitch roll
+    float ypr_comp[3];  // complementary yaw pitch roll
     float yaw, pitch, roll;
     float psi, theta, phi;
+
+    auto t_now = std::chrono::steady_clock::now();
+    auto t_last = std::chrono::steady_clock::now();
 
     //
     uint8_t i,j;
@@ -146,6 +156,57 @@ int main(int argc, char **argv) {
 
                 std::cout << std::setw(10) << accel_x << std::setw(10) << accel_y << std::setw(10) << accel_z;
                 std::cout << std::setw(10) << gyro_x << std::setw(10) << gyro_y << std::setw(10) << gyro_z;
+                std::cout << "\r";
+            }
+            break;
+        
+        case 3:
+            // ====== Orientation using Complementary Filter ======
+            std::cout << "Orientation\n";
+            std::cout << std::fixed << std::setprecision(6) << std::setfill(' ');
+            std::cout << std::setw(12) << "yaw(deg)" << std::setw(12) << "pitch(deg)" << std::setw(12) << "roll(deg)";
+            std::cout << std::endl;
+
+            // Publish in loop.
+            // Start time
+            t_last = std::chrono::steady_clock::now();
+            
+            // Initialize yaw pitch roll
+            std::fill(std::begin(ypr), std::end(ypr), 0);
+            std::fill(std::begin(ypr_comp), std::end(ypr_comp), 0);
+            
+            while(1) {
+                // Get IMU data
+                mpu.GetGyroFloat(&gyro_x, &gyro_y, &gyro_z);
+                mpu.GetAccelFloat(&accel_x, &accel_y, &accel_z);
+
+                // Collect the time
+                t_now = std::chrono::steady_clock::now();
+                std::chrono::duration<double> dt = t_now - t_last;
+                t_last = t_now;
+
+                // Calculate the angles
+                // 1. Roll
+                //    From gyro. gyro data is in deg/s.
+                ypr[2] += gyro_x * dt.count();
+                //    From accel. atan or atan2f return is in rad
+                ypr_comp[2] = atan2f(accel_y, accel_z) * 180/M_PI;
+                // Complementary Filter
+                ypr[2] = ComplementaryFilter(ypr[2], ypr_comp[2]);
+
+                // 2. Pitch
+                //    From gyro. gyro data is in deg/s.
+                ypr[1] += gyro_y * dt.count();
+                //    From accel. atan or atan2f return is in rad
+                ypr_comp[1] = atan2f(accel_x, accel_z) * 180/M_PI;
+                // Complementary Filter
+                ypr[1] = ComplementaryFilter(ypr[1], ypr_comp[1]);
+
+                // 3. Yaw
+                //    From gyro. gyro data is in deg/s.
+                ypr[0] += gyro_z * dt.count();
+                
+                std::cout << std::setw(12) << ypr[0] << std::setw(12) << ypr[1] << std::setw(12) << ypr[2];
                 std::cout << "\r";
             }
             break;
