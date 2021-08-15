@@ -1,15 +1,25 @@
+/**
+ * @author  Dwindra Sulistyoutomo
+ * 
+ * The library is written by referring to I2Cdev library code writtern by Jeff Rowberg
+ * https://github.com/jrowberg/i2cdevlib
+ * 
+ * The class is written specifically for Raspberry Pi.
+ */
+
 #ifndef _MPU6050PI_H
 #define _MPU6050PI_H
 
-#include <cstdint>
-#include <cstring>
-#include <thread>
-#include <chrono>
+#include <cstring>      // Required to verify memory block using memcmp
+#include <thread>       // Required to sleep
+#include <chrono>       // Required to sleep
 
-#include "I2CPi.h"
-#include "math_3d.h"
+#include "I2CPi.h"      // Main I2C Communication Library
+#include "math_3d.h"    // Classes library for DMP functions
 
 #define G_FORCE 9.80665
+
+#define MPU6050_ADDRESS         0x68 // Default I2C address for MPU6050
 
 /**
  * Register Map
@@ -212,6 +222,7 @@
 /**
  * Parameter Settings
  */
+// GYRO_CONFIG
 /* 
  * Gyroscope sensitivity 
  * | FS_SEL  | Full Scale Range  |   LSB Sensitivity   |
@@ -230,6 +241,7 @@
 #define GYRO_LSB_1000           32.8
 #define GYRO_LSB_2000           16.4
 
+// ACCEL_CONFIG
 /* 
  * Accelerometer sensitivity
  * | AFS_SEL  | Full Scale Range |   LSB Sensitivity  |
@@ -321,17 +333,17 @@ class DMP {
  */ 
 class MPU6050Pi {
     private:
-        uint8_t I2C_address_;
-        int fd_;    // I2C device file handler
+        uint8_t I2C_address_;           // I2C address for the device
+        int fd_;                        // I2C device file handler for the class
 
-        float gyro_sensitivity_;
-        float accel_sensitivity_;
-        float gyro_rate_;
-        float sample_rate_;
+        float gyro_sensitivity_;        // Gyroscope sensitivity setting
+        float accel_sensitivity_;       // Accelerometer sensivity settting
+        float gyro_rate_;               // Gyroscope Output Rate setting
+        float sample_rate_;             // Sample Rate setting
 
         // DMP
-        uint8_t *dmp_packet_buffer_;
-        uint16_t dmp_packet_size_;
+        uint8_t *dmp_packet_buffer_;    // DMP Packet buffer
+        uint16_t dmp_packet_size_;      // DMP Packet size setting
 
     public:
         /** ============================================================
@@ -775,9 +787,10 @@ class MPU6050Pi {
         
         // ---------- BANK_SEL registers ----------
         /**
-         * Set Memory Bank
+         * Set Memory Bank Selection.
+         * This register is not documented.
          * 
-         * @param bank              {uint8_t}   0: disabled, 1: sleep mode
+         * @param bank              {uint8_t}   register bank selection
          * @param prefetch_enabled  {bool}      
          * @param user_bank         {bool}      
          */
@@ -803,9 +816,37 @@ class MPU6050Pi {
          */
         uint8_t ReadMemoryByte();
 
-        bool WriteMemoryBlock(const uint8_t *data, uint16_t dataSize, uint8_t bank=0, uint8_t address=0, bool verify=true, bool useProgMem=false);
-        bool WriteProgMemoryBlock(const uint8_t *data, uint16_t dataSize, uint8_t bank=0, uint8_t address=0, bool verify=true);
-        void ReadMemoryBlock(uint8_t *data, uint16_t dataSize, uint8_t bank, uint8_t address);
+        /**
+         * Write bytes of data to MEM_R_W register
+         * 
+         * @param data {uint8_t}        array of data to write
+         * @param data_size {uint16_t}  size of the data in number of bytes
+         * @param bank {uint8_t}        register bank to use
+         * @param address {uint8_t}     starting address for memory
+         * @param verify {bool}         flag to verify if writing is successful or not
+         * @param use_progmem {bool}    flag to use program memory (flash)
+         */
+        bool WriteMemoryBlock(const uint8_t *data, uint16_t data_size, uint8_t bank=0, uint8_t address=0, bool verify=true, bool use_progmem=false);
+        /**
+         * Write bytes of data to MEM_R_W register using program memory by default
+         * 
+         * @param data {uint8_t}        array of data to write
+         * @param data_size {uint16_t}  size of the data in number of bytes
+         * @param bank {uint8_t}        register bank to use
+         * @param address {uint8_t}     starting address for memory
+         * @param verify {bool}         flag to verify if writing is successful or not
+         */
+        bool WriteProgMemoryBlock(const uint8_t *data, uint16_t data_size, uint8_t bank=0, uint8_t address=0, bool verify=true);
+
+        /**
+         * Read bytes of data from MEM_R_W register
+         * 
+         * @param data {uint8_t}        array of data read from register
+         * @param data_size {uint16_t}  size of the data in number of bytes
+         * @param bank {uint8_t}        register bank to use
+         * @param address {uint8_t}     starting address for memory
+         */
+        void ReadMemoryBlock(uint8_t *data, uint16_t data_size, uint8_t bank, uint8_t address);
 
         // ---------- DMP_CFG* registers ----------
         /**

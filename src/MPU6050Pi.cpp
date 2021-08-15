@@ -1,3 +1,7 @@
+/**
+ * @author  Dwindra Sulistyoutomo
+ */
+
 #include "MPU6050Pi.h"
 
 /** ============================================================
@@ -6,10 +10,10 @@
  */
 MPU6050Pi::MPU6050Pi() {
     // Set default the I2C address of the device
-    I2C_address_ = 0x68;
+    I2C_address_ = MPU6050_ADDRESS;
 
     // Initialize the I2C device file handler
-    fd_ = I2CPi::Setup(0x68);
+    fd_ = I2CPi::Setup(MPU6050_ADDRESS);
 
     // Set Clock Source. Better to use X gyro as reference
     MPU6050Pi::SetClockSource(CLOCK_PLL_XGYRO);
@@ -40,10 +44,10 @@ MPU6050Pi::MPU6050Pi() {
 
 MPU6050Pi::MPU6050Pi(int16_t *offsets) {
     // Set default the I2C address of the device
-    I2C_address_ = 0x68;
+    I2C_address_ = MPU6050_ADDRESS;
 
     // Initialize the I2C device file handler
-    fd_ = I2CPi::Setup(0x68);
+    fd_ = I2CPi::Setup(MPU6050_ADDRESS);
 
     // Set Clock Source. Better to use X gyro as reference
     MPU6050Pi::SetClockSource(CLOCK_PLL_XGYRO);
@@ -410,7 +414,7 @@ uint8_t MPU6050Pi::ReadMemoryByte(){
     return I2CPi::ReadByte(fd_, MEM_R_W);
 }
 
-bool MPU6050Pi::WriteMemoryBlock(const uint8_t *data, uint16_t dataSize, uint8_t bank, uint8_t address, bool verify, bool useProgMem){
+bool MPU6050Pi::WriteMemoryBlock(const uint8_t *data, uint16_t data_size, uint8_t bank, uint8_t address, bool verify, bool use_progmem){
     MPU6050Pi::SetMemoryBank(bank);
     MPU6050Pi::SetMemoryStartAddress(address);
     uint8_t chunkSize;
@@ -419,13 +423,13 @@ bool MPU6050Pi::WriteMemoryBlock(const uint8_t *data, uint16_t dataSize, uint8_t
     uint16_t i;
     uint8_t j;
     if (verify) verifyBuffer = (uint8_t *)malloc(DMP_MEMORY_CHUNK_SIZE);
-    // if (useProgMem) progBuffer = (uint8_t *)malloc(DMP_MEMORY_CHUNK_SIZE);
-    for (i = 0; i < dataSize;) {
+    // if (use_progmem) progBuffer = (uint8_t *)malloc(DMP_MEMORY_CHUNK_SIZE);
+    for (i = 0; i < data_size;) {
         // determine correct chunk size according to bank position and data size
         chunkSize = DMP_MEMORY_CHUNK_SIZE;
 
         // make sure we don't go past the data size
-        if (i + chunkSize > dataSize) chunkSize = dataSize - i;
+        if (i + chunkSize > data_size) chunkSize = data_size - i;
 
         // make sure this chunk doesn't go past the bank boundary (256 bytes)
         if (chunkSize > 256 - address) chunkSize = 256 - address;
@@ -462,7 +466,7 @@ bool MPU6050Pi::WriteMemoryBlock(const uint8_t *data, uint16_t dataSize, uint8_t
         address += chunkSize;
 
         // if we aren't done, update bank (if necessary) and address
-        if (i < dataSize) {
+        if (i < data_size) {
             if (address == 0) bank++;
             MPU6050Pi::SetMemoryBank(bank);
             MPU6050Pi::SetMemoryStartAddress(address);
@@ -473,20 +477,20 @@ bool MPU6050Pi::WriteMemoryBlock(const uint8_t *data, uint16_t dataSize, uint8_t
 
 }
 
-bool MPU6050Pi::WriteProgMemoryBlock(const uint8_t *data, uint16_t dataSize, uint8_t bank, uint8_t address, bool verify){
-    return MPU6050Pi::WriteMemoryBlock(data, dataSize, bank, address, verify, true);
+bool MPU6050Pi::WriteProgMemoryBlock(const uint8_t *data, uint16_t data_size, uint8_t bank, uint8_t address, bool verify){
+    return MPU6050Pi::WriteMemoryBlock(data, data_size, bank, address, verify, true);
 }
 
-void MPU6050Pi::ReadMemoryBlock(uint8_t *data, uint16_t dataSize, uint8_t bank, uint8_t address){
+void MPU6050Pi::ReadMemoryBlock(uint8_t *data, uint16_t data_size, uint8_t bank, uint8_t address){
     MPU6050Pi::SetMemoryBank(bank);
     MPU6050Pi::SetMemoryStartAddress(address);
     uint8_t chunkSize;
-    for (uint16_t i = 0; i < dataSize;) {
+    for (uint16_t i = 0; i < data_size;) {
         // determine correct chunk size according to bank position and data size
         chunkSize = DMP_MEMORY_CHUNK_SIZE;
 
         // make sure we don't go past the data size
-        if (i + chunkSize > dataSize) chunkSize = dataSize - i;
+        if (i + chunkSize > data_size) chunkSize = data_size - i;
 
         // make sure this chunk doesn't go past the bank boundary (256 bytes)
         if (chunkSize > 256 - address) chunkSize = 256 - address;
@@ -501,7 +505,7 @@ void MPU6050Pi::ReadMemoryBlock(uint8_t *data, uint16_t dataSize, uint8_t bank, 
         address += chunkSize;
 
         // if we aren't done, update bank (if necessary) and address
-        if (i < dataSize) {
+        if (i < data_size) {
             if (address == 0) bank++;
             MPU6050Pi::SetMemoryBank(bank);
             MPU6050Pi::SetMemoryStartAddress(address);
@@ -693,7 +697,7 @@ uint8_t MPU6050Pi::DMPInitalize() {
 	// std::cout << "Disabling I2C Master mode..." << std::endl;
 	MPU6050Pi::SetI2CMasterModeEnabled(false);
 	// std::cout << "Setting slave 0 address to 0x68..." << std::endl;
-	MPU6050Pi::SetSlaveAddress(0, 0x68);
+	MPU6050Pi::SetSlaveAddress(0, MPU6050_ADDRESS);
 	// std::cout << "Resetting I2C Master control..." << std::endl;
 	MPU6050Pi::ResetI2CMaster();
     std::this_thread::sleep_for (std::chrono::milliseconds(20));
