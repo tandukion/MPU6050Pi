@@ -958,6 +958,25 @@ class MPU6050Pi {
          */
         uint8_t DMPGetYawPitchRoll(float *data, Quaternion *q, Vector *gravity);
 
+        /**
+         * Get the linear acceleration of the device without including gravity
+         * 
+         * @param v {Vector}        vector of linear acceleration
+         * @param v_raw {Vector}    vector of raw acceleration from DMP packet
+         * @param gravity {Vector}  vector of gravity
+         */
+        uint8_t DMPGetLinearAccel(Vector *v, Vector *v_raw, Vector *gravity);
+
+        /**
+         * Rotate measured 3D acceleration vector into original state 
+         * frame of reference based on orientation quaternion
+         * 
+         * @param v {Vector}        vector of linear acceleration in world
+         * @param v_raw {Vector}    vector of linear acceleration
+         * @param q {Quaternion}    quaternion as reference frame
+         */
+        uint8_t DMPGetLinearAccelInWorld(Vector *v, Vector *v_real, Quaternion *q);
+
 };
 
 #endif

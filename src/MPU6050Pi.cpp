@@ -896,3 +896,23 @@ uint8_t MPU6050Pi::DMPGetYawPitchRoll(float *data, Quaternion *q, Vector *gravit
     }
     return 0;
 }
+
+uint8_t MPU6050Pi::DMPGetLinearAccel(Vector *v, Vector *v_raw, Vector *gravity) {
+    // get rid of the gravity component (+1g = +8192 in standard DMP FIFO packet)
+    float divider;
+    if (accel_sensitivity_ == ACCEL_LSB_2) divider = accel_sensitivity_/2;
+    else if (accel_sensitivity_ == ACCEL_LSB_4) divider = accel_sensitivity_/4;
+    else if (accel_sensitivity_ == ACCEL_LSB_8) divider = accel_sensitivity_/8;
+    else if (accel_sensitivity_ == ACCEL_LSB_16) divider = accel_sensitivity_/16;
+
+    v->x = v_raw->x - gravity->x * divider;
+    v->y = v_raw->y - gravity->y * divider;
+    v->z = v_raw->z - gravity->z * divider;
+    return 0;
+}
+
+uint8_t MPU6050Pi::DMPGetLinearAccelInWorld(Vector *v, Vector *v_real, Quaternion *q) {
+    memcpy(v, v_real, sizeof(Vector));
+    v->Rotate(*q);
+    return 0;
+}
