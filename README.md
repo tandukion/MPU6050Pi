@@ -24,6 +24,7 @@ make
 ```
 
 ### Installing the library
+Under `build` directory, do:
 ```
 sudo make install
 ```
@@ -33,6 +34,11 @@ Run the following command to run the auto calibration under `build` directory cr
 ```
 ./auto_calibration
 ```
+You can install the calibration file to a shared folder by installing the library again after running the calibration.
+```
+sudo make install
+```
+The calibration file will be copied to `"~/.local/share/MPU6050"`
 
 ## Run test program
 ### Test
