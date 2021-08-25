@@ -120,7 +120,7 @@ int main(int argc, char **argv) {
     std::cout << std::endl;
 
     // Check whether previously created calibration file exists
-    std::string file_name = "calibration_file.csv";
+    std::string file_name = "calibration.csv";
     struct stat buf;
     if (stat(file_name.c_str(), &buf) == 0) {
         char u_input;
