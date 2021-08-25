@@ -30,7 +30,7 @@ sudo make install
 ```
 
 ### Calibration
-Run the following command to run the auto calibration under `build` directory created on build. The calibration file will be named `calibration_file.csv`
+Run the following command to run the auto calibration under `build` directory created on build. The calibration file will be named `calibration.csv`
 ```
 ./auto_calibration
 ```
@@ -44,6 +44,6 @@ The calibration file will be copied to `"~/.local/share/MPU6050"`
 ### Test
 Run the following command under `build` directory created on build.
 ```
-./read_MPU6050Pi calibration_file.csv
+./read_MPU6050Pi calibration.csv
 ```
 > Notes: the args for cailbration is optional. If not specified, the program will run with default offset.

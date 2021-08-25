@@ -37,4 +37,4 @@ install(TARGETS MPU6050Pi DESTINATION /usr/lib)
 install(FILES ${HEADERS} DESTINATION /usr/include)
 
 # Copy calibration file if exists
-install(FILES build/calibration_file.csv DESTINATION $ENV{HOME}/.local/share/MPU6050 OPTIONAL)
+install(FILES build/calibration.csv DESTINATION $ENV{HOME}/.local/share/MPU6050 OPTIONAL)
