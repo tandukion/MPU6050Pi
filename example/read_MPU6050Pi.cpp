@@ -110,6 +110,7 @@ int main(int argc, char **argv) {
     std::cout << "3. Orientation (Complementary filter)" << std::endl;
     std::cout << "4. DMP (Yaw, Pitch, Roll)" << std::endl;
     std::cout << "5. DMP (Euler angles)" << std::endl;
+    std::cout << "6. DMP (Quaternion)" << std::endl;
     std::cout << "----------------------------" << std::endl;
     std::cout << "Choose mode to choose: ";
     
@@ -216,6 +217,7 @@ int main(int argc, char **argv) {
         
         case 4:
         case 5:
+        case 6:
             std::cout << "Initalize DMP..\n";
             dev_status = mpu.DMPInitalize();
 
@@ -243,8 +245,10 @@ int main(int argc, char **argv) {
             std::cout << std::fixed << std::setprecision(6) << std::setfill(' ');
             if (mode==4)
                 std::cout << std::setw(12) << "yaw(deg)" << std::setw(12) << "pitch(deg)" << std::setw(12) << "roll(deg)";
-            if (mode==5)
+            else if (mode==5)
                 std::cout << std::setw(12) << "psi(deg)" << std::setw(12) << "theta(deg)" << std::setw(12) << "phi(deg)";
+            else if (mode==6)
+                std::cout << std::setw(12) << "x" << std::setw(12) << "y" << std::setw(12) << "z" << std::setw(12) << "w";
             std::cout << std::endl;
             while(1) {
                 // Clear the buffer so as we can get fresh values
@@ -300,6 +304,10 @@ int main(int argc, char **argv) {
                         phi = euler[2] * 180/M_PI;
                         
                         std::cout << std::setw(12) << psi << std::setw(12) << theta << std::setw(12) << phi;
+                        std::cout << "\r";
+                    }
+                    else if (mode==6) {
+                        std::cout << std::setw(12) << q.x << std::setw(12) << q.y << std::setw(12) << q.z << std::setw(12) << q.w;
                         std::cout << "\r";
                     }
                 }
