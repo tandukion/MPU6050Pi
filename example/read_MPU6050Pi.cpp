@@ -194,7 +194,7 @@ int main(int argc, char **argv) {
                 //    From gyro. gyro data is in deg/s.
                 ypr[2] += gyro_x * dt.count();
                 //    From accel. atan or atan2f return is in rad
-                ypr_comp[2] = atan2f(accel_y, accel_z) * 180/M_PI;
+                ypr_comp[2] = atan2f(accel_y, sqrt(accel_x*accel_x + accel_z*accel_z)) * 180/M_PI;
                 // Complementary Filter
                 ypr[2] = ComplementaryFilter(ypr[2], ypr_comp[2]);
 
@@ -202,7 +202,7 @@ int main(int argc, char **argv) {
                 //    From gyro. gyro data is in deg/s.
                 ypr[1] += gyro_y * dt.count();
                 //    From accel. atan or atan2f return is in rad
-                ypr_comp[1] = atan2f(accel_x, accel_z) * 180/M_PI;
+                ypr_comp[1] = atan2f(accel_x, sqrt(accel_y*accel_y + accel_z*accel_z)) * 180/M_PI;
                 // Complementary Filter
                 ypr[1] = ComplementaryFilter(ypr[1], ypr_comp[1]);
 
