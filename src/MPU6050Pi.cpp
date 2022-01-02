@@ -824,11 +824,15 @@ uint8_t MPU6050Pi::DMPGetGyro(int16_t *data, const uint8_t* packet) {
 }
 uint8_t MPU6050Pi::DMPGetGyro(Vector *v, const uint8_t* packet) {
     // TODO: accommodate different arrangements of sent data (ONLY default supported now)
-    if (packet == 0) packet = dmp_packet_buffer_;
-    v->x = (packet[16] << 8) | packet[17];
-    v->y = (packet[20] << 8) | packet[21];
-    v->z = (packet[24] << 8) | packet[25];
-    return 0;
+    int16_t vI[3];
+    uint8_t status = MPU6050Pi::DMPGetGyro(vI, packet);
+    if (status == 0) {
+        v->x = (float)vI[0] / gyro_sensitivity_;
+        v->y = (float)vI[1] / gyro_sensitivity_;
+        v->z = (float)vI[2] / gyro_sensitivity_;
+        return 0;
+    }
+    return status; // int16 return value, indicates error if this line is reached
 }
 
 uint8_t MPU6050Pi::DMPGetAccel(int32_t *data, const uint8_t* packet) {
@@ -848,12 +852,16 @@ uint8_t MPU6050Pi::DMPGetAccel(int16_t *data, const uint8_t* packet) {
     return 0;
 }
 uint8_t MPU6050Pi::DMPGetAccel(Vector *v, const uint8_t* packet) {
-    // TODO: accommodate different arrangements of sent data (ONLY default supported now)
-    if (packet == 0) packet = dmp_packet_buffer_;
-    v->x = (packet[28] << 8) | packet[29];
-    v->y = (packet[32] << 8) | packet[33];
-    v->z = (packet[36] << 8) | packet[37];
-    return 0;
+    // // TODO: accommodate different arrangements of sent data (ONLY default supported now)
+    int16_t vI[3];
+    uint8_t status = MPU6050Pi::DMPGetAccel(vI, packet);
+    if (status == 0) {
+        v->x = (float)vI[0] / accel_sensitivity_;
+        v->y = (float)vI[1] / accel_sensitivity_;
+        v->z = (float)vI[2] / accel_sensitivity_;
+        return 0;
+    }
+    return status; // int16 return value, indicates error if this line is reached
 }
 
 uint8_t MPU6050Pi::DMPGetEuler(float *data, Quaternion *q) {

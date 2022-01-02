@@ -92,6 +92,9 @@ int main(int argc, char **argv) {
     uint8_t fifo_buffer[64];
     Quaternion q;
     Vector gravity;
+    Vector v_gyro, v_accel;
+    int16_t dmp_accel[3];
+    int16_t dmp_gyro[3];
     float euler[3];
     float ypr[3]; // yaw pitch roll
     float ypr_comp[3];  // complementary yaw pitch roll
@@ -111,6 +114,8 @@ int main(int argc, char **argv) {
     std::cout << "4. DMP (Yaw, Pitch, Roll)" << std::endl;
     std::cout << "5. DMP (Euler angles)" << std::endl;
     std::cout << "6. DMP (Quaternion)" << std::endl;
+    std::cout << "7. DMP (Raw sensor data)" << std::endl;
+    std::cout << "8. DMP (Float sensor data)" << std::endl;
     std::cout << "----------------------------" << std::endl;
     std::cout << "Choose mode to choose: ";
     
@@ -218,6 +223,8 @@ int main(int argc, char **argv) {
         case 4:
         case 5:
         case 6:
+        case 7:
+        case 8:
             std::cout << "Initalize DMP..\n";
             dev_status = mpu.DMPInitalize();
 
@@ -249,7 +256,16 @@ int main(int argc, char **argv) {
                 std::cout << std::setw(12) << "psi(deg)" << std::setw(12) << "theta(deg)" << std::setw(12) << "phi(deg)";
             else if (mode==6)
                 std::cout << std::setw(12) << "x" << std::setw(12) << "y" << std::setw(12) << "z" << std::setw(12) << "w";
-            std::cout << std::endl;
+            else if (mode==7) {
+                std::cout << std::setw(10) << "X" << std::setw(10) << "Y" << std::setw(10) << "Z";
+                std::cout << std::setw(10) << "X" << std::setw(10) << "Y" << std::setw(10) << "Z";
+            }
+            else if (mode==8) {
+                std::cout << std::fixed << std::setprecision(3) << std::setfill(' ');
+                std::cout << std::setw(10) << "X(g)" << std::setw(10) << "Y(g)" << std::setw(10) << "Z(g)";
+                std::cout << std::setw(10) << "X(deg/s)" << std::setw(10) << "Y(deg/s)" << std::setw(10) << "Z(deg/s)";
+            }
+                std::cout << "\n";
             while(1) {
                 // Clear the buffer so as we can get fresh values
                 // The sensor is running a lot faster than our sample period
@@ -308,6 +324,26 @@ int main(int argc, char **argv) {
                     }
                     else if (mode==6) {
                         std::cout << std::setw(12) << q.x << std::setw(12) << q.y << std::setw(12) << q.z << std::setw(12) << q.w;
+                        std::cout << "\r";
+                    }
+                    else if (mode==7) {
+                        // Get gyroscope data.
+                        mpu.DMPGetGyro(dmp_gyro, fifo_buffer);
+                        // Get accelerometer data.
+                        mpu.DMPGetAccel(dmp_accel, fifo_buffer);
+
+                        std::cout << std::setw(10) << dmp_accel[0] << std::setw(10) << dmp_accel[1] << std::setw(10) << dmp_accel[2];
+                        std::cout << std::setw(10) << dmp_gyro[0] << std::setw(10) << dmp_gyro[1] << std::setw(10) << dmp_gyro[2];
+                        std::cout << "\r";
+                    }
+                    else if (mode==8) {
+                        // Get gyroscope data.
+                        mpu.DMPGetGyro(&v_gyro, fifo_buffer);
+                        // Get accelerometer data.
+                        mpu.DMPGetAccel(&v_accel, fifo_buffer);
+
+                        std::cout << std::setw(10) << v_accel.x << std::setw(10) << v_accel.y << std::setw(10) << v_accel.z;
+                        std::cout << std::setw(10) << v_gyro.x << std::setw(10) << v_gyro.y << std::setw(10) << v_gyro.z;
                         std::cout << "\r";
                     }
                 }
