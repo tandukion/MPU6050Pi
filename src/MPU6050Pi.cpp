@@ -138,15 +138,19 @@ void MPU6050Pi::SetFullScaleAccelRange(uint8_t range) {
     switch (range) {
         case AFS_SEL_2:      // 2g full scale range
             accel_sensitivity_ = ACCEL_LSB_2;
+            accel_scale_range_ = 2;
             break;
         case AFS_SEL_4:      // 4g full scale range
             accel_sensitivity_ = ACCEL_LSB_4;
+            accel_scale_range_ = 4;
             break;
         case AFS_SEL_8:      // 8g full scale range
             accel_sensitivity_ = ACCEL_LSB_8;
+            accel_scale_range_ = 8;
             break;
         case AFS_SEL_16:      // 16g full scale range
             accel_sensitivity_ = ACCEL_LSB_16;
+            accel_scale_range_ = 16;
             break;
     }
     I2CPi::WriteByte(fd_, ACCEL_CONFIG, accel_config_val);
@@ -856,9 +860,9 @@ uint8_t MPU6050Pi::DMPGetAccel(Vector *v, const uint8_t* packet) {
     int16_t vI[3];
     uint8_t status = MPU6050Pi::DMPGetAccel(vI, packet);
     if (status == 0) {
-        v->x = (float)vI[0] / accel_sensitivity_;
-        v->y = (float)vI[1] / accel_sensitivity_;
-        v->z = (float)vI[2] / accel_sensitivity_;
+        v->x = (float)vI[0] * accel_scale_range_ / accel_sensitivity_;
+        v->y = (float)vI[1] * accel_scale_range_ / accel_sensitivity_;
+        v->z = (float)vI[2] * accel_scale_range_ / accel_sensitivity_;
         return 0;
     }
     return status; // int16 return value, indicates error if this line is reached

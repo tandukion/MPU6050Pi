@@ -338,6 +338,7 @@ class MPU6050Pi {
 
         float gyro_sensitivity_;        // Gyroscope sensitivity setting
         float accel_sensitivity_;       // Accelerometer sensivity settting
+        float accel_scale_range_;       // Accelerometer full scale range in g
         float gyro_rate_;               // Gyroscope Output Rate setting
         float sample_rate_;             // Sample Rate setting
 
